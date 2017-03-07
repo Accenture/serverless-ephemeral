@@ -46,8 +46,8 @@ The configuration for the Ephemeral plugin is set inside the `custom` section of
 custom:
   ephemeral:
     libraries:
-      - url: https://domain.com/library-A.zip
-      - url: https://domain.com/library-B.zip
+      - url: https://xxxxx.s3.amazonaws.com/tensorflow-1.0.0-cp27-cp27mu-linux_x86_64.zip
+      - url: https://xxxxx.s3.amazonaws.com/test-library.zip
         forceDownload: true
 ```
 

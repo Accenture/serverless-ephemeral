@@ -6,6 +6,12 @@
   },
   "description": "Serverless Framework plugin to bundles stateless zipped dependencies into the deployable Lambda artifact",
   "author": "Alex Leon <a.leon.escalera@accenture.com>",
+  "contributors": [
+    {
+      "name": "Eric Motazedi",
+      "email": "eric.motazedi@accenture.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/alexleonescalera/serverless-ephemeral"
@@ -37,7 +43,6 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^3.0.2",
     "eslint-plugin-react": "^6.9.0",
-    "mock-require": "^2.0.1",
     "proxyquire": "^1.7.11",
     "sinon": "^1.17.7"
   },
