@@ -35,12 +35,14 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
                 - .ephemeral/**
                 - node_modules/**
     ```
+
+
 ### Configure the Ephemeral plugin
 The configuration for the Ephemeral plugin is set inside the `custom` section of the serverless.yml file. In it, you can define the list of stateless libraries you wish to pull into the final Lambda artifact.
 
 > The stateless libraries MUST be zip files
 
-```
+```yml
 custom:
   ephemeral:
     libraries:
