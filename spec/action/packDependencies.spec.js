@@ -61,12 +61,6 @@ test.beforeEach((t) => {
     action.serverless.getProvider.returns({
         naming: t.context.namingServiceStub,
     });
-
-    action.tensorflow = {
-        fs: {
-            artifactsDir: '/path/to/tensorflow/artifacts',
-        },
-    };
 });
 
 test.serial('Zips all artifacts', (t) => {

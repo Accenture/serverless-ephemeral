@@ -112,7 +112,7 @@ test.serial('Creates the Ephemeral files package directory', (t) => {
     t.true(action.serverless.cli.vlog.calledOnce);
 });
 
-test.serial('Unzips the Serverless artifacts to the TensorFlow directory', (t) => {
+test.serial('Unzips the Serverless artifacts to the Ephemeral files package directory', (t) => {
     action.unzipServerlessArtifactsToEphemeralPkgDir();
 
     t.is(Util.fs.unzip.getCall(0).args[0], '/service/.serverless/project.zip');

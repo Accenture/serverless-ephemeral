@@ -1,6 +1,5 @@
 /**
- * Serverles Plugin that adds Tensorflow to the Lambdas deployment package
- * Works only with Python
+ * Serverles Plugin that adds stateless libraries to the Lambdas deployment package
  */
 
 const BbPromise = require('bluebird');
