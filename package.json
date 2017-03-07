@@ -4,7 +4,8 @@
   "engines": {
     "node": ">=4.0"
   },
-  "description": "Serverless Framework plugin to inject stateless zipped dependencies",
+  "description": "Serverless Framework plugin to bundles stateless zipped dependencies into the deployable Lambda artifact",
+  "author": "Alex Leon <a.leon.escalera@accenture.com>",
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/alexleonescalera/serverless-ephemeral"
@@ -13,12 +14,13 @@
     "serverless framework plugin",
     "serverless applications",
     "serverless plugins",
+    "serverless.com",
+    "serverless",
     "lambda",
     "aws",
     "aws lambda",
     "amazon",
     "amazon web services",
-    "serverless.com",
     "ephemeral",
     "tensorflow"
   ],
@@ -27,7 +29,6 @@
     "lint": "eslint {,**/}*.js",
     "test": "ava spec/{,**/}*.spec.js"
   },
-  "author": "Alex Leon <a.leon.escalera@accenture.com>",
   "license": "ISC",
   "devDependencies": {
     "ava": "^0.17.0",
