@@ -3,7 +3,7 @@ const sinon = require('sinon');
 
 const crypto = require('crypto');
 const fs = require('fs');
-const unzip = require('unzip');
+const unzip = require('unzip-stream');
 
 const util = require('../../src/util/fs');
 

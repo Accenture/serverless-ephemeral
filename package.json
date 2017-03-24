@@ -1,6 +1,6 @@
 {
   "name": "serverless-ephemeral",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "node": ">=4.0"
   },
@@ -53,6 +53,7 @@
     "del": "^2.2.2",
     "request": "^2.79.0",
     "unzip": "^0.1.11",
+    "unzip-stream": "^0.1.2",
     "url-parse": "^1.1.8"
   },
   "files": [

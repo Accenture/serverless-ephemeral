@@ -1,7 +1,7 @@
 const BbPromise = require('bluebird');
 const crypto = require('crypto');
 const fs = require('fs');
-const unzip = require('unzip');
+const unzip = require('unzip-stream');
 
 module.exports = {
     /**
