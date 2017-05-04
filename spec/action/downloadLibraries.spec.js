@@ -2,7 +2,6 @@ const test = require('ava');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 
-const BbPromise = require('bluebird');
 const del = require('del');
 const fs = require('fs');
 
@@ -44,59 +43,6 @@ test.before(() => {
 
     initEphemeralValues(action);
     initServerlessValues(action);
-});
-
-test.serial('Callback when Ephemeral libraries directory exists', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(1);
-
-    return action.checkLibrariesDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
-        t.false(create);
-    });
-});
-
-test.serial('Callback when Ephemeral libraries directory does not exist', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(2);
-
-    return action.checkLibrariesDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
-        t.true(create);
-    });
-});
-
-test.serial('Callback when there is an error accessing the Ephemeral libraries directory', (t) => {
-    Util.fs.onPathExists.reset();
-    action.serverless.cli.log.reset();
-
-    Util.fs.onPathExists.callsArgWith(3, 'Access Error');
-
-    return action.checkLibrariesDirExists().catch((error) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
-        t.is(error, 'Access Error');
-        t.true(action.serverless.cli.log.calledOnce);
-    });
-});
-
-test.serial('Creates the Ephemeral libraries directory', (t) => {
-    Util.fs.promises.mkdir.reset();
-    Util.fs.promises.mkdir.returns(BbPromise.resolve());
-
-    action.serverless.cli.vlog.reset();
-
-    action.createLibrariesDir(true);
-
-    t.true(Util.fs.promises.mkdir.calledWith('/service/.ephemeral/lib'));
-    t.true(action.serverless.cli.vlog.calledOnce);
-});
-
-test.serial('Does not create the Ephemeral libraries directory when create param is false', (t) => {
-    Util.fs.promises.mkdir.reset();
-
-    action.createLibrariesDir(false);
-
-    t.false(Util.fs.promises.mkdir.called);
 });
 
 test.serial('Deletes local copy when forceDownload option is true', (t) => {

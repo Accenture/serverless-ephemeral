@@ -5,7 +5,7 @@
 const BbPromise = require('bluebird');
 
 const vlog = require('./src/util/cli').vlog;
-const cleanUpDependencies = require('./src/action/cleanUpDependencies');
+const createDirectories = require('./src/action/createDirectories');
 const copyServerlessArtifacts = require('./src/action/copyServerlessArtifacts');
 const downloadLibraries = require('./src/action/downloadLibraries');
 const packDependencies = require('./src/action/packDependencies');
@@ -33,7 +33,7 @@ class ServerlessEphemeral {
 
         Object.assign(
             this,
-            cleanUpDependencies,
+            createDirectories,
             copyServerlessArtifacts,
             downloadLibraries,
             packDependencies // eslint-disable-line comma-dangle
@@ -47,7 +47,7 @@ class ServerlessEphemeral {
          */
         this.hooks = {
             'after:deploy:cleanup': () => BbPromise.bind(this)
-                .then(this.cleanUpDependencies),
+                .then(this.createDirectories),
 
             'after:deploy:createDeploymentArtifacts': () => BbPromise.bind(this)
                 .then(this.copyServerlessArtifacts)
