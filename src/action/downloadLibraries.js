@@ -15,43 +15,6 @@ Util.fs = require('../util/fs');
 
 module.exports = {
     /**
-     * Checks if the libraries directory exists
-     * @returns Promise
-     */
-    checkLibrariesDirExists () {
-        return new BbPromise((resolve, reject) => {
-            Util.fs.onPathExists(this.ephemeral.paths.lib,
-                () => {
-                    // nothing is done if it exists
-                    resolve(false);
-                },
-                () => {
-                    // create if doesn't exist
-                    resolve(true);
-                },
-                (accessError) => {
-                    this.serverless.cli.log(`Error reading path ${this.ephemeral.paths.lib}`);
-                    reject(accessError);
-                }
-            );
-        });
-    },
-
-    /**
-     * Creates the libraries directory
-     * @param {boolean} create - Whether to create the directory
-     * @returns Promise
-     */
-    createLibrariesDir (create = false) {
-        if (!create) {
-            return BbPromise.resolve();
-        }
-
-        this.serverless.cli.vlog(`Creating directory ${this.ephemeral.paths.lib}`);
-        return Util.fs.promises.mkdir(this.ephemeral.paths.lib);
-    },
-
-    /**
      * Checks if the libraries zip exists locally
      * @returns Promise
      */
@@ -148,9 +111,7 @@ module.exports = {
         const promises = [];
 
         libs.forEach((libConfig) => {
-            const promise = this.checkLibrariesDirExists()
-                .then(this.createLibrariesDir.bind(this))
-                .then(this.checkForLibrariesZip.bind(this, this.prepareLibConfig(libConfig)))
+            const promise = this.checkForLibrariesZip(this.prepareLibConfig(libConfig))
                 .then(this.downloadLibrariesZip.bind(this))
                 .then(this.unzipLibrariesToPackageDir.bind(this));
 
