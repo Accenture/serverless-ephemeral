@@ -3,6 +3,7 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
 
 ## Pre-requirements
 * Node 6.9 or later
+* Serverless Framework 1.4.0 or later
 
 ## Using the plugin
 ### Adding it to your project
