@@ -56,6 +56,9 @@
     "unzip-stream": "^0.1.2",
     "url-parse": "^1.1.8"
   },
+  "peerDependencies": {
+    "serverless": ">= 1.4.0"
+  },
   "files": [
     "README.md",
     "index.js",
