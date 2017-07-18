@@ -46,14 +46,14 @@ class ServerlessEphemeral {
          * Hooks that fire before or after core Serverless lifecycle events
          */
         this.hooks = {
-            'after:deploy:cleanup': () => BbPromise.bind(this)
+            'after:package:cleanup': () => BbPromise.bind(this)
                 .then(this.createDirectories),
 
-            'after:deploy:createDeploymentArtifacts': () => BbPromise.bind(this)
+            'after:package:createDeploymentArtifacts': () => BbPromise.bind(this)
                 .then(this.copyServerlessArtifacts)
                 .then(this.downloadLibraries),
 
-            'before:deploy:deploy': () => BbPromise.bind(this)
+            'after:package:finalize': () => BbPromise.bind(this)
                 .then(this.packDependencies),
         };
     }
