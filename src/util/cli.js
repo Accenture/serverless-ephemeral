@@ -6,7 +6,9 @@ module.exports = {
      * @return {[type]}         [description]
      */
     vlog (message) {
-        if (this.serverless.processedInput.options.verbose) {
+        const options = this.serverless.processedInput.options;
+
+        if (options.v || options.verbose) {
             this.serverless.cli.log(message);
         }
     },
