@@ -33,8 +33,13 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint {,**/}*.js",
+    "lint:fix": "npm run lint -- --fix",
     "test": "ava spec/{,**/}*.spec.js"
   },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
   "license": "ISC",
   "devDependencies": {
     "ava": "^0.17.0",
@@ -43,6 +48,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^3.0.2",
     "eslint-plugin-react": "^6.9.0",
+    "pre-commit": "^1.2.2",
     "proxyquire": "^1.7.11",
     "sinon": "^1.17.7"
   },
