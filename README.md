@@ -154,6 +154,7 @@ custom:
       - url: https://domain.com/library-A.zip
       - url: https://domain.com/library-B.zip
         forceDownload: true
+        
 ```
 
 - The **url** is mandatory, since it is the location where your zipped library is found
@@ -182,6 +183,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
 
     ```bash
     git clone https://github.com/Accenture/serverless-ephemeral.git
+
     ```
 
 2. Install the node dependencies
