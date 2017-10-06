@@ -19,7 +19,7 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
     ```json
     {
       "devDependencies": {
-        "serverless-ephemeral": "git+https://git@gitlab.com:alexleonescalera/serverless-ephemeral.git"
+        "serverless-ephemeral": "git+https://git@github.com:Accenture/serverless-ephemeral.git"
       }
     }
     ```
@@ -77,7 +77,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
 1. Clone this repository
 
     ```bash
-    git clone git@gitlab.com:alexleonescalera/serverless-ephemeral.git
+    git clone https://github.com/Accenture/serverless-ephemeral.git
     ```
 
 2. Install the node dependencies
@@ -125,7 +125,7 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
     ```json
     {
       "devDependencies": {
-        "serverless-ephemeral": "git+https://git@gitlab.com:alexleonescalera/serverless-ephemeral.git"
+        "serverless-ephemeral": "git+https://git@github.com:Accenture/serverless-ephemeral.git"
       }
     }
     ```
@@ -181,7 +181,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
 1. Clone this repository
 
     ```bash
-    git clone git@gitlab.com:alexleonescalera/serverless-ephemeral.git
+    git clone https://github.com/Accenture/serverless-ephemeral.git
     ```
 
 2. Install the node dependencies
