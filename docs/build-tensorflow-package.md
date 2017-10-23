@@ -1,6 +1,8 @@
 # Building TensorFlow deployable package
 TensorFlow is provided as a package that can be installed via `pip`. In order to use this package and its dependencies successfully as part of an AWS Lambda, they must be provided as a zip file.
 
+> At the time of last update, the latest TensorFlow version is 1.3.0. Visit https://www.tensorflow.org/install/install_linux to get the latest version.
+
 ## 1. Create an EC2 instance
 Lambdas are executed under a Public Amazon Linux AMI instance (see [Lambda Execution Environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html)). Therefore, it is a good idea to use an Amazon Linux AMI instance (CentOS based) to create the TensorFlow deployable package. You can follow this [tutorial](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) to create and run an EC2 instance. A `t2.micro` type is enough for this process.
 
@@ -37,7 +39,7 @@ $ source ~/venvs/tensorflow/bin/activate
 > To exit the environment, call the `deactivate` command.
 
 ## 3. Install TensorFlow
-We are now inside the virtual environment (you will notice the `(tensorflow)` prefix in the command line). *pip* and *wheel* were installed by default in your virtual environment; we are going to need them in order to install TensorFlow and its dependencies. 
+We are now inside the virtual environment (you will notice the `(tensorflow)` prefix in the command line). *pip* and *wheel* were installed by default in your virtual environment; we are going to need them in order to install TensorFlow and its dependencies.
 
 The first thing to do is upgrade *pip* to its latest version:
 
@@ -48,7 +50,7 @@ The first thing to do is upgrade *pip* to its latest version:
 Then, we will install TensorFlow. This tutorial uses the Linux 64-bit, CPU only, Python 2.7 version. For full list of versions, look [here](https://www.tensorflow.org/get_started/os_setup):
 
 ```bash
-(tensorflow)$ pip install --upgrade --ignore-installed --no-cache-dir https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.2.0-cp27-none-linux_x86_64.whl
+(tensorflow)$ pip install --upgrade --ignore-installed --no-cache-dir https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp27-none-linux_x86_64.whl
 ```
 
 ## 4. Add init file to google module
@@ -118,7 +120,7 @@ running TensorFlow in Lambdas.
 
 ### Step 5 `strip`
 
-If you get a warning when `strip` is run against NumPy saying ` Not enough room for program headers`, just ignore it. This doesn't appear to cause issues when 
+If you get a warning when `strip` is run against NumPy saying ` Not enough room for program headers`, just ignore it. This doesn't appear to cause issues when
 
 ## References
 * http://www.slideshare.net/fabiandubois/tensorflow-in-production-with-aws-lambda
