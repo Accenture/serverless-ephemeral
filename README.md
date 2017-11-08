@@ -1,5 +1,8 @@
 # Serverless Ephemeral
-This is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless zipped library to the Lambda deployment artifact.
+
+This is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless zipped library into the Lambda deployment artifact.
+
+[![Build Status](https://travis-ci.org/Accenture/serverless-ephemeral.svg?branch=master)](https://travis-ci.org/Accenture/serverless-ephemeral)
 
 ## Pre-requirements
 * Node 6.9 or later
