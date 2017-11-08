@@ -7,7 +7,7 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
 
 ## Using the plugin
 ### Creating a packaged library
-One of the original main objectives of this plugin is deploying [Google TensorFlow](https://www.tensorflow.org/) as part of a AWS Lambda. Thus, documentation on creating the deployable TensorFlow has been created. It is available in [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)
+One of the original main objectives of this plugin is deploying [Google TensorFlow](https://www.tensorflow.org/) as part of an AWS Lambda. Thus, documentation on creating the deployable TensorFlow zipped package has been provided. It is available in [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)
 
 The same baseline approach (create virtual envs, pip install, zip .py files...) can be used for other libraries (e.g. NumPy).
 
