@@ -6,3 +6,5 @@ deploy:
   provider: npm
   email: "a.leon.escalera@accenture.com"
   api_key: $NPM_TOKEN
+  on:
+    tags: true
