@@ -2,8 +2,8 @@
 
 This is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless zipped library into the Lambda deployment artifact.
 
-[![NPM Version][npm-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
+    [![NPM Version][npm-image]][npm-url]
+    [![Build Status][travis-image]][travis-url]
 
 ## Pre-requirements
 * Node 6.9 or later
@@ -114,3 +114,8 @@ To run tests on "watch" mode and add verbosity:
 ```
 npm test -- --watch -v
 ```
+
+    [npm-image]: https://img.shields.io/npm/v/serverless-ephemeral.svg
+    [npm-url]: https://npmjs.org/package/serverless-ephemeral
+    [travis-image]: https://img.shields.io/travis/Accenture/serverless-ephemeral/master.svg
+    [travis-url]: https://travis-ci.org/Accenture/serverless-ephemeral
