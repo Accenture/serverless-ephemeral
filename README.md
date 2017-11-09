@@ -16,24 +16,13 @@ One of the original main objectives of this plugin is deploying [Google TensorFl
 The same baseline approach (create virtual envs, pip install, zip .py files...) can be used for other libraries (e.g. NumPy).
 
 ### Adding it to your project
-1. Add these lines to your .gitignore file
+1. Install the plugin
 
     ```
-    .ephemeral
-    node_modules
+    npm i --save-dev serverless-ephemeral
     ```
 
-2. Go to the root folder of your Serverless service and create a *package.json* with the following content:
-
-    ```json
-    {
-      "devDependencies": {
-        "serverless-ephemeral": "git+https://git@github.com:Accenture/serverless-ephemeral.git"
-      }
-    }
-    ```
-3. Run `npm install`
-4. Add the plugin and exclussions to your `serverless.yml` file
+1. Add the plugin to your `serverless.yml` file and exclude the `.ephemeral` directory
 
     ```yml
         plugins:
@@ -42,10 +31,11 @@ The same baseline approach (create virtual envs, pip install, zip .py files...) 
         package:
             exclude:
                 - package.json
-                - .ephemeral/**
                 - node_modules/**
+                - .ephemeral/**
     ```
 
+1. It is advised to exclude the `.ephemeral` directory from Git, since it may grow to by 10s of MB.
 
 ### Configure the Ephemeral plugin
 The configuration for the Ephemeral plugin is set inside the `custom` section of the serverless.yml file. In it, you can define the list of stateless libraries you wish to pull into the final Lambda artifact.
@@ -62,7 +52,7 @@ custom:
 ```
 
 - The **url** is mandatory, since it is the location where your zipped library is found
-- **forceDownload** is optional. When set to *true*, it will download the library only the first time, saving a local copy and reusing it every time the service is deployed
+- **forceDownload** is optional. When ommitted or set to *false*, it will only download the library if it is not found, and will save a local copy to reuse every time the service is deployed. Otherwise, if set to *true*, it will download the library every time the service is deployed.
 
 ### Deploying
 5. Deploy your service normally with the `serverless deploy` (or `sls deploy`) command. If you use the `-v` option, Ephemeral will show more information about the process.
@@ -71,10 +61,10 @@ custom:
     sls deploy -v
     ```
 
-    > Given the plugin bundles libraries, the final zipped asset size may increase considerable. Under slow connections, consider using the `AWS_CLIENT_TIMEOUT` environment variable (see https://github.com/serverless/serverless/issues/490#issuecomment-204976134)
+    > Given the plugin bundles libraries, the final zipped asset size may increase considerably. Under slow connections, consider using the `AWS_CLIENT_TIMEOUT` environment variable (see https://github.com/serverless/serverless/issues/490#issuecomment-204976134)
 
 ### The .ephemeral directory
-During the deployment process, a `.ephemeral` directory will be created. The purpose of this directory is:
+During the deployment process, the `.ephemeral` directory will be created. The purpose of this directory is:
 * Saving the downloaded library zip files inside the `.ephemeral/lib` folder
 * Bundling the libraries and the Serverless Lambda function file(s) inside the `.ephemeral/pkg` folder
 
@@ -92,7 +82,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
 2. Install the node dependencies
 
     ```bash
-    npm install
+    npm i
     ```
 
 ### Running Lint
@@ -103,7 +93,9 @@ npm run lint
 ```
 
 ### Tests
-The unit tests are coded with [Ava](https://github.com/avajs/ava) and [SinonJS](http://sinonjs.org/docs/). They can be found inside the `spec` folder. To run the tests:
+The unit tests are coded with [Ava](https://github.com/avajs/ava) and [SinonJS](http://sinonjs.org/docs/). They can be found inside the `spec` folder.
+
+To run the tests:
 
 ```bash
 npm test
