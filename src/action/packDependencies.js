@@ -44,6 +44,8 @@ module.exports = {
      * Updates the CloudFormation Lambdas' hash that reflects the updated package
      */
     updateLambdasHash () {
+        this.serverless.cli.vlog('Recalculating Lambdas version');
+
         const Resources = this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
         const Outputs = this.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
 

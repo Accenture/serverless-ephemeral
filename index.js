@@ -53,7 +53,7 @@ class ServerlessEphemeral {
                 .then(this.copyServerlessArtifacts)
                 .then(this.downloadLibraries),
 
-            'after:package:finalize': () => BbPromise.bind(this)
+            'before:package:finalize': () => BbPromise.bind(this)
                 .then(this.packDependencies),
         };
     }
