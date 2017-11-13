@@ -1,0 +1,13 @@
+# tests
+spec
+
+# build tools
+.travis.yml
+
+# linters
+.eslintrc
+.eslintignore
+
+# other
+docs
+examples
