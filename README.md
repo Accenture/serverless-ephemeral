@@ -9,6 +9,9 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
 * Node 6.9 or later
 * Serverless Framework 1.4.0 or later
 
+## Examples
+* [TensorFlow Lambda](examples/tensorflow-lambda): Uses Serverless Ephemeral to pull in a packaged TensorFlow (see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)) and add the library to Python Lambdas.
+
 ## Using the plugin
 ### Creating a packaged library
 One of the original main objectives of this plugin is deploying [Google TensorFlow](https://www.tensorflow.org/) as part of an AWS Lambda. Thus, documentation on creating the deployable TensorFlow zipped package has been provided. It is available in [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)
