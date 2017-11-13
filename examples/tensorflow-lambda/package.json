@@ -1,0 +1,7 @@
+{
+  "name": "tensorflow-lambda-example",
+  "version": "1.0.0",
+  "devDependencies": {
+    "serverless-ephemeral": "^0.4.0"
+  }
+}

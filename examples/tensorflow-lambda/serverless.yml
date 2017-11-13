@@ -1,0 +1,31 @@
+service: tensorflow-lambda-example
+
+plugins:
+  - serverless-ephemeral
+
+package:
+  exclude:
+    - package.json
+    - package-lock.json
+    - README.md
+    - node_modules/**
+    - .ephemeral/**
+
+custom:
+  ephemeral:
+    libraries:
+      - url: https://s3-us-west-2.amazonaws.com/liquid-studio-tensorflow/tensorflow-1.2.0-cp27-none-linux_x86_64.zip
+
+provider:
+  name: aws
+  runtime: python2.7
+  stage: dev
+  region: us-east-1
+  # profile: default
+
+functions:
+  tensorflowTest:
+    handler: tensorflow_test.lambda_handler
+
+  numpyTest:
+    handler: numpy_test.lambda_handler

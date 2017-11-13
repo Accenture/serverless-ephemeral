@@ -27,6 +27,7 @@ node_modules
 
 #IDE Stuff
 **/.idea
+.vscode
 
 #OS STUFF
 .DS_Store
@@ -35,3 +36,5 @@ node_modules
 #SERVERLESS STUFF
 admin.env
 .env
+.serverless
+.ephemeral
