@@ -6,6 +6,7 @@ const del = require('del');
 const fs = require('fs');
 const request = require('request');
 const parse = require('url-parse');
+const { rtrim } = require('underscore.string');
 
 const Util = {
     fs: null,
@@ -16,6 +17,7 @@ Util.fs = require('../util/fs');
 module.exports = {
     /**
      * Checks if the libraries zip exists locally
+     * @param {Object} config - package configuration
      * @returns Promise
      */
     checkForLibrariesZip (config) {
@@ -49,7 +51,7 @@ module.exports = {
 
     /**
      * Downloads the external libraries zip
-     * @param {boolean} download - Whether to download the zip file
+     * @param {Object} config - package configuration
      * @returns Promise
      */
     downloadLibrariesZip (config) {
@@ -81,17 +83,59 @@ module.exports = {
     },
 
     /**
+     * Creates a custom directory inside package dir if specified by user
+     * @param {Object} config - package configuration
+     * @returns Promise
+     */
+    createCustomDirectory (config) {
+        config.destinationPath = this.ephemeral.paths.pkg;
+
+        let dir = config.directory || '';
+        dir = dir.trim();
+
+        // validate entered directory
+        if (dir.length) {
+            if (!/^[A-Za-z0-9._-]+$/.test(dir)) {
+                return Promise.reject('Directory name can only include alphanumeric characters and symbols -_.');
+            }
+
+            dir = `/${rtrim(dir, '/')}`;
+        }
+
+        // append directory to path
+        config.destinationPath += dir;
+
+        // create directory if it doesn't exist
+        try {
+            fs.mkdirSync(config.destinationPath);
+        } catch (error) {
+            if (error.code !== 'EEXISTS') {
+                return Promise.reject(`Unexpected error creating directory ${config.destinationPath}`);
+            }
+        }
+
+        return Promise.resolve(config);
+    },
+
+    /**
      * Unzips libraries to the package directory
+     * @param {Object} config - package configuration
+     * @returns Promise
      */
     unzipLibrariesToPackageDir (config) {
         return Util.fs.unzip(
             config.file.path,
-            this.ephemeral.paths.pkg,
+            config.destinationPath,
             this.serverless.cli.vlog,
-            { before: `Extracting ${config.file.name} to ${this.ephemeral.paths.pkg}` }
+            { before: `Extracting ${config.file.name} to ${config.destinationPath}` }
         );
     },
 
+    /**
+     * Pulls the path and zip file name for better usability
+     * @param {Object} config - package configuration
+     * @returns Promise
+     */
     prepareLibConfig (libConfig) {
         const name = parse(libConfig.url).pathname
             .split('/')
@@ -112,6 +156,7 @@ module.exports = {
 
         libs.forEach((libConfig) => {
             const promise = this.checkForLibrariesZip(this.prepareLibConfig(libConfig))
+                .then(this.createCustomDirectory.bind(this))
                 .then(this.downloadLibrariesZip.bind(this))
                 .then(this.unzipLibrariesToPackageDir.bind(this));
 

@@ -25,9 +25,9 @@ class ServerlessEphemeral {
         this.ephemeral = {
             config: serverless.service.custom.ephemeral,
             paths: {
-                base: `${this.serverless.config.servicePath}/${EPHEMERAL_DIR_NAME}`,
-                lib: `${this.serverless.config.servicePath}/${EPHEMERAL_DIR_NAME}/lib`,
-                pkg: `${this.serverless.config.servicePath}/${EPHEMERAL_DIR_NAME}/pkg`,
+                base: `${EPHEMERAL_DIR_NAME}`,
+                lib: `${EPHEMERAL_DIR_NAME}/lib`,
+                pkg: `${EPHEMERAL_DIR_NAME}/pkg`,
             },
         };
 

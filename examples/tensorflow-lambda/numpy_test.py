@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, './tensorflow-1.2.0')
+
 import numpy as np
 
 def lambda_handler(event, context):
@@ -13,6 +16,3 @@ def lambda_handler(event, context):
             "size": a.size
         }
     }
-
-if __name__ == '__main__':
-    print(lambda_handler({}, {}))
