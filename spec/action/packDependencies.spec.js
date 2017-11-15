@@ -72,7 +72,7 @@ test.serial('Zips all artifacts', (t) => {
     streamStub.on.withArgs('open').yields();
     streamStub.on.withArgs('close').yields();
 
-    sinon.stub(fs, 'createWriteStream', () => streamStub);
+    sinon.stub(fs, 'createWriteStream').callsFake(() => streamStub);
 
     const archiverOptionsStub = {
         pipe: sinon.stub(),
@@ -112,7 +112,7 @@ test.serial('Zips all artifacts', (t) => {
     streamStub.on.returns(streamStub);
     streamStub.on.withArgs('error').yields('Error writing zip file');
 
-    sinon.stub(fs, 'createWriteStream', () => streamStub);
+    sinon.stub(fs, 'createWriteStream').callsFake(() => streamStub);
 
     const archiverStub = sinon.stub();
 
@@ -180,7 +180,7 @@ test('Updates the Lambda zip hashes in the Cloud Formation template', (t) => {
     };
 
     // setup new hash calculator stub
-    sinon.stub(Util.fs, 'calculateFileHash', () => '67890QWERTY');
+    sinon.stub(Util.fs, 'calculateFileHash').callsFake(() => '67890QWERTY');
 
     return action.updateLambdasHash().then(() => {
         t.true(Util.fs.calculateFileHash.calledOnce);

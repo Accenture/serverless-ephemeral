@@ -2,7 +2,7 @@
   "name": "serverless-ephemeral",
   "version": "0.4.0",
   "engines": {
-    "node": ">=4.0"
+    "node": ">=6.0"
   },
   "description": "Serverless Framework plugin to bundles stateless zipped dependencies into the deployable Lambda artifact",
   "author": "Alex Leon <a.leon.escalera@accenture.com>",
@@ -34,7 +34,8 @@
   "scripts": {
     "lint": "eslint {,**/}*.js",
     "lint:fix": "npm run lint -- --fix",
-    "test": "ava spec/{,**/}*.spec.js"
+    "test": "ava spec/{,**/}*.spec.js",
+    "test:watch": "npm test -- --watch"
   },
   "pre-commit": [
     "lint",
@@ -50,13 +51,14 @@
     "eslint-plugin-react": "^6.9.0",
     "pre-commit": "^1.2.2",
     "proxyquire": "^1.7.11",
-    "sinon": "^1.17.7"
+    "sinon": "^4.1.2"
   },
   "dependencies": {
     "archiver": "^2.1.0",
     "bluebird": "^3.5.1",
     "del": "^3.0.0",
     "request": "^2.83.0",
+    "underscore.string": "^3.3.4",
     "unzip-stream": "^0.2.1",
     "url-parse": "^1.2.0"
   },

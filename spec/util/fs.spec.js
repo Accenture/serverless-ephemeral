@@ -88,7 +88,7 @@ test.serial('Unzips a file to a specified directory', (t) => {
     sinon.stub(fs, 'createReadStream');
     fs.createReadStream.returns(streamStub);
 
-    sinon.stub(unzip, 'Extract', () => 'Unzipped files');
+    sinon.stub(unzip, 'Extract').callsFake(() => 'Unzipped files');
 
     const loggerStub = sinon.stub();
     const messages = { before: 'Before', success: 'Success' };
@@ -124,7 +124,7 @@ test.serial('Error unzipping a file to a specified directory', (t) => {
     sinon.stub(fs, 'createReadStream');
     fs.createReadStream.returns(streamStub);
 
-    sinon.stub(unzip, 'Extract', () => 'Unzipped assets');
+    sinon.stub(unzip, 'Extract').callsFake(() => 'Unzipped assets');
 
     const loggerStub = sinon.stub();
     const messages = { fail: 'Fail' };
@@ -146,7 +146,7 @@ test.serial('Error unzipping a file to a specified directory', (t) => {
 });
 
 test('Calculates the sha256 hash for a given file', (t) => {
-    sinon.stub(fs, 'readFileSync', () => 'File contents');
+    sinon.stub(fs, 'readFileSync').callsFake(() => 'File contents');
 
     const hashStub = {
         setEncoding: sinon.stub(),
@@ -157,7 +157,7 @@ test('Calculates the sha256 hash for a given file', (t) => {
 
     hashStub.read.returns('SHA256 hash');
 
-    sinon.stub(crypto, 'createHash', () => hashStub);
+    sinon.stub(crypto, 'createHash').callsFake(() => hashStub);
 
     const result = util.calculateFileHash('/path/to/file.zip');
 

@@ -50,11 +50,13 @@ custom:
   ephemeral:
     libraries:
       - url: https://xxxxx.s3.amazonaws.com/tensorflow-1.3.0-cp27-none-linux_x86_64.zip
+        directory: tensorflow-1.3.0
       - url: https://xxxxx.s3.amazonaws.com/test-library.zip
         forceDownload: true
 ```
 
-- The **url** is mandatory, since it is the location where your zipped library is found
+- **url** is mandatory, since it is the location where your zipped library is found
+- **directory** is optional. When ommitted, the package contents will be unzipped at service root level. If entered, a new folder will be created at that level using the specified name and everything will be unzipped there. The folder can only be named using alphanumeric characters and the symbols `. _ -`
 - **forceDownload** is optional. When ommitted or set to *false*, it will only download the library if it is not found, and will save a local copy to reuse every time the service is deployed. Otherwise, if set to *true*, it will download the library every time the service is deployed.
 
 ### Deploying
