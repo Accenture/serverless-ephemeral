@@ -109,7 +109,7 @@ module.exports = {
         try {
             fs.mkdirSync(config.destinationPath);
         } catch (error) {
-            if (error.code !== 'EEXISTS') {
+            if (error.code !== 'EEXIST') {
                 return Promise.reject(`Unexpected error creating directory ${config.destinationPath}`);
             }
         }
