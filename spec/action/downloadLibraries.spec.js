@@ -192,7 +192,7 @@ test.serial('Provided custom directory already exists', (t) => {
     };
 
     fs.mkdirSync.reset();
-    fs.mkdirSync.throws({ code: 'EEXISTS' });
+    fs.mkdirSync.throws({ code: 'EEXIST' });
 
     action.createCustomDirectory(configParam).then((config) => {
         const destPath = '.ephemeral/pkg/my-library';
