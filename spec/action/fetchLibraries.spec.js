@@ -11,7 +11,7 @@ const Util = {
 
 Util.fs = require('../../src/util/fs');
 
-const action = require('../../src/action/downloadLibraries');
+const action = require('../../src/action/fetchLibraries');
 
 function initServerlessValues (act) {
     act.serverless = {
@@ -113,64 +113,6 @@ test.serial('There is an error when checking if an external dependency zip exist
     t.is(error, 'Error checking');
 });
 
-test.serial('Downloads the specified library zip', (t) => {
-    const streamStub = {
-        pipe: sinon.stub(),
-        on: sinon.stub(),
-    };
-
-    streamStub.pipe.returns(streamStub);
-    streamStub.on.returns(streamStub);
-    streamStub.on.withArgs('finish').yields();
-
-    const requestStub = sinon.stub();
-    requestStub.returns(streamStub);
-
-    sinon.stub(fs, 'createWriteStream').callsFake(() => 'Zip File');
-
-    // proxyquire action to stub the request module
-    const proxyAction = proxyquire('../../src/action/downloadLibraries', {
-        request: requestStub,
-    });
-
-    initServerlessValues(proxyAction);
-
-    proxyAction.serverless.cli.vlog.reset();
-
-    const configParam = {
-        download: true,
-        url: 'http://domain.com/library-A.zip',
-        file: {
-            path: '.ephemeral/libs/library-A.zip',
-        },
-    };
-
-    return proxyAction.downloadLibrariesZip(configParam).then((config) => {
-        t.true(requestStub.calledWith('http://domain.com/library-A.zip'));
-        t.true(fs.createWriteStream.calledWith('.ephemeral/libs/library-A.zip'));
-        t.true(streamStub.pipe.calledWith('Zip File'));
-        t.true(proxyAction.serverless.cli.vlog.calledOnce);
-        t.deepEqual(configParam, config);
-
-        fs.createWriteStream.restore();
-    });
-});
-
-test.serial('Does not download anything when the config.download flag is false', (t) => {
-    const requestStub = sinon.stub();
-
-    // proxyquire action to stub the request module
-    const proxyAction = proxyquire('../../src/action/downloadLibraries', {
-        request: requestStub,
-    });
-
-    const configParam = { download: false };
-
-    return proxyAction.downloadLibrariesZip(configParam).then((config) => {
-        t.false(requestStub.called);
-        t.deepEqual(configParam, config);
-    });
-});
 
 test.serial('Creates a custom directory for a specific library', (t) => {
     const configParam = {
@@ -222,10 +164,69 @@ test.serial('An unexpected error occurs when creating the custom directory', asy
     t.is(error, 'Unexpected error creating directory .ephemeral/pkg/my-library');
 });
 
+test.serial('Downloads the specified library zip', (t) => {
+    const streamStub = {
+        pipe: sinon.stub(),
+        on: sinon.stub(),
+    };
+
+    streamStub.pipe.returns(streamStub);
+    streamStub.on.returns(streamStub);
+    streamStub.on.withArgs('finish').yields();
+
+    const requestStub = sinon.stub();
+    requestStub.returns(streamStub);
+
+    sinon.stub(fs, 'createWriteStream').callsFake(() => 'Zip File');
+
+    // proxyquire action to stub the request module
+    const proxyAction = proxyquire('../../src/action/fetchLibraries', {
+        request: requestStub,
+    });
+
+    initServerlessValues(proxyAction);
+
+    proxyAction.serverless.cli.vlog.reset();
+
+    const configParam = {
+        download: true,
+        url: 'http://domain.com/library-A.zip',
+        file: {
+            path: '.ephemeral/libs/library-A.zip',
+        },
+    };
+
+    return proxyAction.downloadLibraryZip(configParam).then((config) => {
+        t.true(requestStub.calledWith('http://domain.com/library-A.zip'));
+        t.true(fs.createWriteStream.calledWith('.ephemeral/libs/library-A.zip'));
+        t.true(streamStub.pipe.calledWith('Zip File'));
+        t.true(proxyAction.serverless.cli.vlog.calledOnce);
+        t.deepEqual(configParam, config);
+
+        fs.createWriteStream.restore();
+    });
+});
+
+test.serial('Does not download anything when the config.download flag is false', (t) => {
+    const requestStub = sinon.stub();
+
+    // proxyquire action to stub the request module
+    const proxyAction = proxyquire('../../src/action/fetchLibraries', {
+        request: requestStub,
+    });
+
+    const configParam = { download: false };
+
+    return proxyAction.downloadLibraryZip(configParam).then((config) => {
+        t.false(requestStub.called);
+        t.deepEqual(configParam, config);
+    });
+});
+
 test.serial('Unzips a library to the Ephemeral package directory', (t) => {
     Util.fs.unzip.reset();
 
-    action.unzipLibrariesToPackageDir({
+    action.unzipLibraryToPackageDir({
         destinationPath: '.ephemeral/pkg/my-libraries',
         file: {
             path: '.ephemeral/lib/library-A.zip',

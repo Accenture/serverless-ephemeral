@@ -50,39 +50,6 @@ module.exports = {
     },
 
     /**
-     * Downloads the external libraries zip
-     * @param {Object} config - package configuration
-     * @returns Promise
-     */
-    downloadLibrariesZip (config) {
-        if (!config.download) {
-            return BbPromise.resolve(config);
-        }
-
-        return new BbPromise((resolve, reject) => {
-            this.serverless.cli.vlog(`Downloading ${config.url}`);
-
-            const req = request(config.url);
-
-            req.on('error', (error) => {
-                this.serverless.cli.log('Error downloading');
-                reject(error);
-            });
-
-            const output = req.pipe(fs.createWriteStream(config.file.path));
-
-            output.on('finish', () => {
-                resolve(config);
-            });
-
-            output.on('error', (error) => {
-                this.serverless.cli.log('Error creating zip file');
-                reject(error);
-            });
-        });
-    },
-
-    /**
      * Creates a custom directory inside package dir if specified by user
      * @param {Object} config - package configuration
      * @returns Promise
@@ -118,11 +85,44 @@ module.exports = {
     },
 
     /**
+     * Downloads the external libraries zip
+     * @param {Object} config - package configuration
+     * @returns Promise
+     */
+    downloadLibraryZip (config) {
+        if (!config.download) {
+            return BbPromise.resolve(config);
+        }
+
+        return new BbPromise((resolve, reject) => {
+            this.serverless.cli.vlog(`Downloading ${config.url}`);
+
+            const req = request(config.url);
+
+            req.on('error', (error) => {
+                this.serverless.cli.log('Error downloading');
+                reject(error);
+            });
+
+            const output = req.pipe(fs.createWriteStream(config.file.path));
+
+            output.on('finish', () => {
+                resolve(config);
+            });
+
+            output.on('error', (error) => {
+                this.serverless.cli.log('Error creating zip file');
+                reject(error);
+            });
+        });
+    },
+
+    /**
      * Unzips libraries to the package directory
      * @param {Object} config - package configuration
      * @returns Promise
      */
-    unzipLibrariesToPackageDir (config) {
+    unzipLibraryToPackageDir (config) {
         return Util.fs.unzip(
             config.file.path,
             config.destinationPath,
@@ -150,15 +150,15 @@ module.exports = {
         return libConfig;
     },
 
-    downloadLibraries () {
+    fetchLibraries () {
         const libs = this.ephemeral.config.libraries;
         const promises = [];
 
         libs.forEach((libConfig) => {
             const promise = this.checkForLibrariesZip(this.prepareLibConfig(libConfig))
                 .then(this.createCustomDirectory.bind(this))
-                .then(this.downloadLibrariesZip.bind(this))
-                .then(this.unzipLibrariesToPackageDir.bind(this));
+                .then(this.downloadLibraryZip.bind(this))
+                .then(this.unzipLibraryToPackageDir.bind(this));
 
             promises.push(promise);
         });
