@@ -85,6 +85,29 @@ module.exports = {
     },
 
     /**
+     * Decides whether to download or fetch a package definition and build
+     * @param {Object} config - package configuration
+     * @returns Promise
+     */
+    fetchLibrary (config) {
+        if (config.build === true) {
+            return this.buildLibraryZip(config);
+        }
+
+        return this.downloadLibraryZip(config);
+    },
+
+    /**
+     * Builds the library zip
+     * @param {Object} config - package configuration
+     * @returns Promise
+     */
+    buildLibraryZip (config) {
+        // TODO: implement
+        return Promise.resolve(config);
+    },
+
+    /**
      * Downloads the external libraries zip
      * @param {Object} config - package configuration
      * @returns Promise
@@ -157,7 +180,7 @@ module.exports = {
         libs.forEach((libConfig) => {
             const promise = this.checkForLibrariesZip(this.prepareLibConfig(libConfig))
                 .then(this.createCustomDirectory.bind(this))
-                .then(this.downloadLibraryZip.bind(this))
+                .then(this.fetchLibrary.bind(this))
                 .then(this.unzipLibraryToPackageDir.bind(this));
 
             promises.push(promise);

@@ -57,6 +57,7 @@
     "archiver": "^2.1.0",
     "bluebird": "^3.5.1",
     "del": "^3.0.0",
+    "dockerode": "^2.5.3",
     "request": "^2.83.0",
     "underscore.string": "^3.3.4",
     "unzip-stream": "^0.2.1",

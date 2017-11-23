@@ -164,6 +164,43 @@ test.serial('An unexpected error occurs when creating the custom directory', asy
     t.is(error, 'Unexpected error creating directory .ephemeral/pkg/my-library');
 });
 
+test.serial('Decides to download the library', (t) => {
+    const configParam = {
+        url: 'http://domain.com/library-A.zip',
+    };
+
+    sinon.stub(action, 'buildLibraryZip');
+    sinon.stub(action, 'downloadLibraryZip')
+        .callsFake(config => Promise.resolve(config));
+
+    return action.fetchLibrary(configParam).then((config) => {
+        t.false(action.buildLibraryZip.called);
+        t.true(action.downloadLibraryZip.calledWith(config));
+
+        action.downloadLibraryZip.restore();
+        action.buildLibraryZip.restore();
+    });
+});
+
+test.serial('Decides to build the library', (t) => {
+    const configParam = {
+        url: 'http://domain.com/library-A.whl',
+        build: true,
+    };
+
+    sinon.stub(action, 'downloadLibraryZip');
+    sinon.stub(action, 'buildLibraryZip')
+        .callsFake(config => Promise.resolve(config));
+
+    return action.fetchLibrary(configParam).then((config) => {
+        t.false(action.downloadLibraryZip.called);
+        t.true(action.buildLibraryZip.calledWith(config));
+
+        action.buildLibraryZip.restore();
+        action.downloadLibraryZip.restore();
+    });
+});
+
 test.serial('Downloads the specified library zip', (t) => {
     const streamStub = {
         pipe: sinon.stub(),

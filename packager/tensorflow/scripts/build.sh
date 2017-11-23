@@ -3,26 +3,28 @@
 BUILD_DIR=/tmp/tensorflow
 
 usage () {
-  echo "Usage: $0 -v <version> -o <outputdir>\n\nExample:\n\t$0 -v 1.4.0 -o /tmp/tensorflow" 1>&2
+  echo "Usage: $0 <source-uri>"
+  echo "Example:"
+  echo "    $0 https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl"
   exit 1
 }
 
 download () {
-  VERSION=$1
-  NAME=tensorflow-${VERSION}-cp27-none-linux_x86_64
-  WHEEL=https://storage.googleapis.com/tensorflow/linux/cpu/${NAME}.whl
+  SOURCE="$1"
+  NAME="${SOURCE##*/}"  # remove domain and path
+  NAME=${NAME%.*}       # remove file extension
 
-  if curl --output /dev/null --silent --head --fail "$WHEEL"; then
+  if curl --output /dev/null --silent --head --fail "$SOURCE"; then
     build
   else
-    echo "The provided version does not exist: $VERSION"
+    echo "The provided source was not found: $SOURCE"
     exit 1
   fi
 }
 
 build () {
   # Start virtual environment and install TensorFlow
-  . /venv/bin/activate && pip install --upgrade --ignore-installed --no-cache-dir ${WHEEL} && deactivate
+  . /venv/bin/activate && pip install --upgrade --ignore-installed --no-cache-dir ${SOURCE} && deactivate
 
   # Add __init__.py to google dir to make it a package
   touch /venv/lib64/python2.7/site-packages/google/__init__.py
@@ -46,21 +48,9 @@ build () {
   done
 }
 
-while getopts ":v:" o; do
-  case "${o}" in
-    v)
-      v=${OPTARG}
-      ;;
-    *)
-      usage
-      ;;
-  esac
-done
-shift $((OPTIND-1))
-
-if [ -z "${v}" ]; then
+if [ -z "$1" ]; then
   usage
 else
-  download ${v}
+  download $1
 fi
 

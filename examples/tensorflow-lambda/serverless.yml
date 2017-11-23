@@ -14,8 +14,11 @@ package:
 custom:
   ephemeral:
     libraries:
-      - url: https://s3-us-west-2.amazonaws.com/liquid-studio-tensorflow/tensorflow-1.2.0-cp27-none-linux_x86_64.zip
-        directory: tensorflow-1.2.0
+      - url: https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
+        build: true
+        directory: tensorflow-1.4.0
+      # - url: https://s3-us-west-2.amazonaws.com/liquid-studio-tensorflow/tensorflow-1.2.0-cp27-none-linux_x86_64.zip
+      #   directory: tensorflow-1.2.0
 
 provider:
   name: aws
