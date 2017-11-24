@@ -2,8 +2,11 @@
  * Downloads all the Ephemeral Python dependencies and appends the Serverless Lambda artifacts
  */
 const BbPromise = require('bluebird');
+const shell = require('shelljs');
+
 const del = require('del');
 const fs = require('fs');
+const path = require('path');
 const request = require('request');
 const parse = require('url-parse');
 const { rtrim } = require('underscore.string');
@@ -103,8 +106,24 @@ module.exports = {
      * @returns Promise
      */
     buildLibraryZip (config) {
-        // TODO: implement
-        return Promise.resolve(config);
+        if (!shell.which('docker') || !shell.which('docker-compose')) {
+            return Promise.reject(new Error('Docker not found on host machine. Please install to proceed.'));
+        }
+
+        return new Promise((resolve, reject) => {
+            shell.pushd(path.resolve(__dirname, '../../packager/tensorflow'));
+            const build = shell.exec('docker-compose build', { async: true });
+            build.on('error', error => reject(error));
+            build.on('close', () => {
+                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:/tmp/tensorflow`;
+                const run = shell.exec(`docker run -v ${volume} -e "SOURCE=${config.url}" acn/lambdatensorflow`, { async: true });
+                run.on('error', error => reject(error));
+                run.on('close', () => {
+                    shell.popd();
+                    resolve(config);
+                });
+            });
+        });
     },
 
     /**
@@ -160,14 +179,11 @@ module.exports = {
      * @returns Promise
      */
     prepareLibConfig (libConfig) {
-        const name = parse(libConfig.url).pathname
-            .split('/')
-            .filter(token => token.indexOf('.zip') !== -1)[0];
-
-        const path = `${this.ephemeral.paths.lib}/${name}`;
+        const name = `${parse(libConfig.url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}.zip`;
+        const filePath = `${this.ephemeral.paths.lib}/${name}`;
 
         libConfig = Object.assign({}, libConfig, {
-            file: { name, path },
+            file: { name, path: filePath },
         });
 
         return libConfig;

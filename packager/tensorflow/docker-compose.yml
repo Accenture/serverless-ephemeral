@@ -2,6 +2,5 @@ version: '3'
 services:
   tensorflow:
     build: .
-    image: lambda-tensorflow
-    volumes:
-      - .:/tmp/tensorflow
+    image: acn/lambdatensorflow
+    container_name: lambdatensorflow

@@ -1,27 +1,5 @@
 #!/bin/bash
 
-BUILD_DIR=/tmp/tensorflow
-
-usage () {
-  echo "Usage: $0 <source-uri>"
-  echo "Example:"
-  echo "    $0 https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl"
-  exit 1
-}
-
-download () {
-  SOURCE="$1"
-  NAME="${SOURCE##*/}"  # remove domain and path
-  NAME=${NAME%.*}       # remove file extension
-
-  if curl --output /dev/null --silent --head --fail "$SOURCE"; then
-    build
-  else
-    echo "The provided source was not found: $SOURCE"
-    exit 1
-  fi
-}
-
 build () {
   # Start virtual environment and install TensorFlow
   . /venv/bin/activate && pip install --upgrade --ignore-installed --no-cache-dir ${SOURCE} && deactivate
@@ -38,6 +16,12 @@ build () {
   find /venv/lib64/python2.7/site-packages -name "*.so" | xargs strip
 
   # Zip libraries
+  BUILD_DIR=/tmp/tensorflow
+  NAME="${SOURCE##*/}"  # remove domain and path
+  NAME=${NAME%.*}       # remove file extension
+
+  echo $NAME
+
   mkdir -p $BUILD_DIR
   dirs=("/venv/lib/python2.7/site-packages/" "/venv/lib64/python2.7/site-packages/")
 
@@ -46,11 +30,14 @@ build () {
     cd ${dir}
     zip -r9q ${BUILD_DIR}/${NAME}.zip * --exclude \*.pyc
   done
+
+  ls -l $BUILD_DIR
 }
 
-if [ -z "$1" ]; then
-  usage
+if curl --output /dev/null --silent --head --fail "$SOURCE"; then
+  build
 else
-  download $1
+  echo "The provided source was not found: $SOURCE"
+  exit 1
 fi
 
