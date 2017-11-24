@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './tensorflow-1.2.0')
+sys.path.insert(0, './tensorflow-1.4.0')
 
 import numpy as np
 
