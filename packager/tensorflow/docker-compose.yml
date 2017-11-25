@@ -2,5 +2,5 @@ version: '3'
 services:
   tensorflow:
     build: .
-    image: acn/lambdatensorflow
+    image: lambdatensorflow
     container_name: lambdatensorflow
