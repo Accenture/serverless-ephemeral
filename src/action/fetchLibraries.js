@@ -17,6 +17,10 @@ const Util = {
 
 Util.fs = require('../util/fs');
 
+const IMAGES = {
+    tensorflow: 'lambdatensorflow',
+};
+
 module.exports = {
     /**
      * Checks if the libraries zip exists locally
@@ -25,23 +29,28 @@ module.exports = {
      */
     checkForLibrariesZip (config) {
         if (config.forceDownload) {
+            this.serverless.cli.vlog('Option "forceDownload" is deprecated. Please use "nocache" instead');
+            config.nocache = config.forceDownload;
+        }
+
+        if (config.nocache) {
             del.sync(config.file.path);
 
-            config.download = true;
+            config.refetch = true;
             return BbPromise.resolve(config);
         }
 
         return new BbPromise((resolve, reject) => {
             Util.fs.onPathExists(config.file.path,
                 () => {
-                    // if dependencies exist, do not download
-                    config.download = false;
+                    // if dependencies exist, do not fetch
+                    config.refetch = false;
                     this.serverless.cli.vlog(`Using local copy of ${config.file.name}`);
                     resolve(config);
                 },
                 () => {
-                    // if dependencies do not exist, download
-                    config.download = true;
+                    // if dependencies do not exist, fetch (i.e. build or download)
+                    config.refetch = true;
                     resolve(config);
                 },
                 (accessError) => {
@@ -93,7 +102,11 @@ module.exports = {
      * @returns Promise
      */
     fetchLibrary (config) {
-        if (config.build === true) {
+        if (!config.refetch) {
+            return BbPromise.resolve(config);
+        }
+
+        if (typeof config.build === 'string') {
             return this.buildLibraryZip(config);
         }
 
@@ -106,17 +119,28 @@ module.exports = {
      * @returns Promise
      */
     buildLibraryZip (config) {
+        const keys = Object.keys(IMAGES);
+
+        if (keys.indexOf(config.build) === -1) {
+            return Promise.reject(
+                new Error(`The packager "${config.build}" is not available. Please use one of the following: ${keys.join(', ')}`)
+            );
+        }
+
         if (!shell.which('docker') || !shell.which('docker-compose')) {
             return Promise.reject(new Error('Docker not found on host machine. Please install to proceed.'));
         }
 
         return new Promise((resolve, reject) => {
-            shell.pushd(path.resolve(__dirname, '../../packager/tensorflow'));
+            shell.pushd(path.resolve(__dirname, `../../packager/${config.build}`));
             const build = shell.exec('docker-compose build', { async: true });
             build.on('error', error => reject(error));
             build.on('close', () => {
                 const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:/tmp/tensorflow`;
-                const run = shell.exec(`docker run -v ${volume} -e "SOURCE=${config.url}" acn/lambdatensorflow`, { async: true });
+                const run = shell.exec(
+                    `docker run -v ${volume} -e VERSION='${config.version}' -e NAME='${config.file.name}' ${IMAGES[config.build]}`,
+                    { async: true }
+                );
                 run.on('error', error => reject(error));
                 run.on('close', () => {
                     shell.popd();
@@ -132,10 +156,6 @@ module.exports = {
      * @returns Promise
      */
     downloadLibraryZip (config) {
-        if (!config.download) {
-            return BbPromise.resolve(config);
-        }
-
         return new BbPromise((resolve, reject) => {
             this.serverless.cli.vlog(`Downloading ${config.url}`);
 
@@ -179,7 +199,16 @@ module.exports = {
      * @returns Promise
      */
     prepareLibConfig (libConfig) {
-        const name = `${parse(libConfig.url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}.zip`;
+        let name;
+
+        if (typeof libConfig.build === 'string') {
+            name = `${libConfig.build}-${libConfig.version}`;
+        } else {
+            name = `${parse(libConfig.url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}`;
+        }
+
+        name = `${name}.zip`;
+
         const filePath = `${this.ephemeral.paths.lib}/${name}`;
 
         libConfig = Object.assign({}, libConfig, {

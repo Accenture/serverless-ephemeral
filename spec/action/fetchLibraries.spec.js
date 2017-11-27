@@ -13,6 +13,22 @@ Util.fs = require('../../src/util/fs');
 
 const action = require('../../src/action/fetchLibraries');
 
+function getRequestStub () {
+    const streamStub = {
+        pipe: sinon.stub(),
+        on: sinon.stub(),
+    };
+
+    streamStub.pipe.callsFake(() => streamStub);
+    streamStub.on.callsFake(() => streamStub);
+    streamStub.on.withArgs('finish').yields();
+
+    const requestStub = sinon.stub();
+    requestStub.callsFake(() => streamStub);
+
+    return { requestStub, streamStub };
+}
+
 function initServerlessValues (act) {
     act.serverless = {
         service: {
@@ -46,23 +62,23 @@ test.before(() => {
     initServerlessValues(action);
 });
 
-test.serial('Deletes local copy when forceDownload option is true', (t) => {
+test.serial('Deletes local copy when nocache option is true', (t) => {
     sinon.stub(del, 'sync');
 
     return action.checkForLibrariesZip({
         file: {
             path: '.ephemeral/libs/library-A.zip',
         },
-        forceDownload: true,
+        nocache: true,
     }).then((config) => {
         t.true(del.sync.calledWith('.ephemeral/libs/library-A.zip'));
-        t.true(config.download);
+        t.true(config.refetch);
 
         del.sync.restore();
     });
 });
 
-test.serial('Checks if an external dependency zip exists locally', (t) => {
+test.serial('Checks if the library zip exists locally', (t) => {
     action.serverless.cli.vlog.reset();
 
     Util.fs.onPathExists.reset();
@@ -72,15 +88,15 @@ test.serial('Checks if an external dependency zip exists locally', (t) => {
         file: {
             path: '.ephemeral/libs/library-A.zip',
         },
-        forceDownload: false,
+        nocache: false,
     }).then((config) => {
         t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
         t.true(action.serverless.cli.vlog.calledOnce);
-        t.false(config.download);
+        t.false(config.refetch);
     });
 });
 
-test.serial('Checks if an external dependency zip does not exist locally', (t) => {
+test.serial('Checks if the library zip does not exist locally', (t) => {
     Util.fs.onPathExists.reset();
     Util.fs.onPathExists.callsArg(2);
 
@@ -88,14 +104,14 @@ test.serial('Checks if an external dependency zip does not exist locally', (t) =
         file: {
             path: '.ephemeral/libs/library-A.zip',
         },
-        forceDownload: false,
+        nocache: false,
     }).then((config) => {
         t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
-        t.true(config.download);
+        t.true(config.refetch);
     });
 });
 
-test.serial('There is an error when checking if an external dependency zip exists', async (t) => {
+test.serial('There is an error when checking if the library zip exists', async (t) => {
     action.serverless.cli.log.reset();
 
     Util.fs.onPathExists.reset();
@@ -105,7 +121,7 @@ test.serial('There is an error when checking if an external dependency zip exist
         file: {
             path: '.ephemeral/libs/library-A.zip',
         },
-        forceDownload: false,
+        nocache: false,
     }));
 
     t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
@@ -164,12 +180,31 @@ test.serial('An unexpected error occurs when creating the custom directory', asy
     t.is(error, 'Unexpected error creating directory .ephemeral/pkg/my-library');
 });
 
+test.serial('Library is found locally, so nothing to build/download', (t) => {
+    const configParam = {
+        refetch: false,
+    };
+
+    sinon.spy(action, 'buildLibraryZip');
+    sinon.spy(action, 'downloadLibraryZip');
+
+    return action.fetchLibrary(configParam).then((config) => {
+        t.false(action.buildLibraryZip.called);
+        t.false(action.downloadLibraryZip.called);
+        t.is(config, configParam);
+
+        action.downloadLibraryZip.restore();
+        action.buildLibraryZip.restore();
+    });
+});
+
 test.serial('Decides to download the library', (t) => {
     const configParam = {
         url: 'http://domain.com/library-A.zip',
+        refetch: true,
     };
 
-    sinon.stub(action, 'buildLibraryZip');
+    sinon.spy(action, 'buildLibraryZip');
     sinon.stub(action, 'downloadLibraryZip')
         .callsFake(config => Promise.resolve(config));
 
@@ -184,11 +219,11 @@ test.serial('Decides to download the library', (t) => {
 
 test.serial('Decides to build the library', (t) => {
     const configParam = {
-        url: 'http://domain.com/library-A.whl',
-        build: true,
+        build: 'tensorflow',
+        refetch: true,
     };
 
-    sinon.stub(action, 'downloadLibraryZip');
+    sinon.spy(action, 'downloadLibraryZip');
     sinon.stub(action, 'buildLibraryZip')
         .callsFake(config => Promise.resolve(config));
 
@@ -202,17 +237,7 @@ test.serial('Decides to build the library', (t) => {
 });
 
 test.serial('Downloads the specified library zip', (t) => {
-    const streamStub = {
-        pipe: sinon.stub(),
-        on: sinon.stub(),
-    };
-
-    streamStub.pipe.returns(streamStub);
-    streamStub.on.returns(streamStub);
-    streamStub.on.withArgs('finish').yields();
-
-    const requestStub = sinon.stub();
-    requestStub.returns(streamStub);
+    const { requestStub, streamStub } = getRequestStub();
 
     sinon.stub(fs, 'createWriteStream').callsFake(() => 'Zip File');
 
@@ -244,23 +269,7 @@ test.serial('Downloads the specified library zip', (t) => {
     });
 });
 
-test.serial('Does not download anything when the config.download flag is false', (t) => {
-    const requestStub = sinon.stub();
-
-    // proxyquire action to stub the request module
-    const proxyAction = proxyquire('../../src/action/fetchLibraries', {
-        request: requestStub,
-    });
-
-    const configParam = { download: false };
-
-    return proxyAction.downloadLibraryZip(configParam).then((config) => {
-        t.false(requestStub.called);
-        t.deepEqual(configParam, config);
-    });
-});
-
-test.serial('Unzips a library to the Ephemeral package directory', (t) => {
+test.serial('Unzips the library to the Ephemeral package directory', (t) => {
     Util.fs.unzip.reset();
 
     action.unzipLibraryToPackageDir({
@@ -274,15 +283,15 @@ test.serial('Unzips a library to the Ephemeral package directory', (t) => {
     t.is(Util.fs.unzip.getCall(0).args[1], '.ephemeral/pkg/my-libraries');
 });
 
-test('Prepares a library\'s configuration with the file info', (t) => {
+test('Prepares the library\'s configuration with the file info', (t) => {
     const result = action.prepareLibConfig({
         url: 'http://domain.com/path/library-A.zip',
-        forceDownload: true,
+        nocache: true,
     });
 
     t.deepEqual(result, {
         url: 'http://domain.com/path/library-A.zip',
-        forceDownload: true,
+        nocache: true,
         file: {
             name: 'library-A.zip',
             path: '.ephemeral/lib/library-A.zip',
