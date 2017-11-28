@@ -7,7 +7,7 @@ const BbPromise = require('bluebird');
 const vlog = require('./src/util/cli').vlog;
 const createDirectories = require('./src/action/createDirectories');
 const copyServerlessArtifacts = require('./src/action/copyServerlessArtifacts');
-const downloadLibraries = require('./src/action/downloadLibraries');
+const fetchLibraries = require('./src/action/fetchLibraries');
 const packDependencies = require('./src/action/packDependencies');
 
 const EPHEMERAL_DIR_NAME = '.ephemeral';
@@ -35,7 +35,7 @@ class ServerlessEphemeral {
             this,
             createDirectories,
             copyServerlessArtifacts,
-            downloadLibraries,
+            fetchLibraries,
             packDependencies // eslint-disable-line comma-dangle
         );
 
@@ -51,7 +51,7 @@ class ServerlessEphemeral {
 
             'after:package:createDeploymentArtifacts': () => BbPromise.bind(this)
                 .then(this.copyServerlessArtifacts)
-                .then(this.downloadLibraries),
+                .then(this.fetchLibraries),
 
             'before:package:finalize': () => BbPromise.bind(this)
                 .then(this.packDependencies),

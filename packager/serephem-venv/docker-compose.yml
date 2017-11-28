@@ -1,0 +1,5 @@
+version: '3'
+services:
+  serephemvenv:
+    build: .
+    image: serephem-venv

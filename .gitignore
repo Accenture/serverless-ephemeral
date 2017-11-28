@@ -38,3 +38,4 @@ admin.env
 .env
 .serverless
 .ephemeral
+packager/**/*.zip

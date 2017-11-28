@@ -1,80 +1,130 @@
 # Serverless Ephemeral
 
-This is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless zipped library into the Lambda deployment artifact.
+This is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless library into the Lambda deployment artifact.
 
 [![NPM Version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
 
 ## Pre-requirements
-* Node 6.9 or later
-* Serverless Framework 1.4.0 or later
+* Node >= 6.9
+* Serverless Framework >= 1.12.0
+* Docker (with docker compose)
 
 ## Examples
 * [TensorFlow Lambda](examples/tensorflow-lambda): Uses Serverless Ephemeral to pull in a packaged TensorFlow (see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)) and add the library to Python Lambdas.
 
-## Using the plugin
-### Creating a packaged library
-One of the original main objectives of this plugin is deploying [Google TensorFlow](https://www.tensorflow.org/) as part of an AWS Lambda. Thus, documentation on creating the deployable TensorFlow zipped package has been provided. It is available in [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)
+## Add the plugin
+1. Install it
 
-The same baseline approach (create virtual envs, pip install, zip .py files...) can be used for other libraries (e.g. NumPy).
-
-### Adding it to your project
-1. Install the plugin
-
-    ```
+    ```bash
     npm i --save-dev serverless-ephemeral
     ```
 
-1. Add the plugin to your `serverless.yml` file and exclude the `.ephemeral` directory
+1. Add it to your `serverless.yml` file and exclude the `.ephemeral` directory
 
-    ```yml
+    ```yaml
         plugins:
             - serverless-ephemeral
 
         package:
             exclude:
                 - package.json
+                - package-lock.json
                 - node_modules/**
                 - .ephemeral/**
     ```
 
-1. It is advised to exclude the `.ephemeral` directory from Git, since it may grow to by 10s of MB.
+1. Add the `.ephemeral` directory to `.gitignore`
 
-### Configure the Ephemeral plugin
-The configuration for the Ephemeral plugin is set inside the `custom` section of the serverless.yml file. In it, you can define the list of stateless libraries you wish to pull into the final Lambda artifact.
+```
+# Serverless Framework
+.serverless
+.ephemeral
+```
 
-> The stateless libraries MUST be zip files
 
-```yml
+## Configuration
+The configuration for the Ephemeral plugin is set inside the `custom` section of the `serverless.yml` file. In it, you can define the list of stateless libraries you wish to pull into the final Lambda artifact.
+
+There are two types of configuration:
+* [Build a library during runtime](#build-a-library)
+* [Download a library](#download-a-library)
+
+Both can be enhanced with [global configuration options](#global-options).
+
+### Build a library
+
+You can build a specific library during runtime. This is achieved via a Docker container that outputs a zip library.
+
+#### Serverless Ephemeral packagers
+
+You can use one of the Docker packagers provided with the Serverless Ephemeral plugin.
+
+##### TensorFlow
+
+```yaml
+custom:
+  ephemeral:
+    libraries:
+      - build:
+          name: tensorflow
+          version: 1.4.0
+```
+
+- **build.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
+- **build.version** is required. This will determine which TensorFlow version you want to build.
+
+> For reference, you can look at the TensorFlow packager under [/packager/tensorflow](packager/tensorflow) directory.
+
+### Download a library
+
+```yaml
 custom:
   ephemeral:
     libraries:
       - url: https://xxxxx.s3.amazonaws.com/tensorflow-1.3.0-cp27-none-linux_x86_64.zip
-        directory: tensorflow-1.3.0
-      - url: https://xxxxx.s3.amazonaws.com/test-library.zip
-        forceDownload: true
 ```
 
-- **url** is mandatory, since it is the location where your zipped library is found
-- **directory** is optional. When ommitted, the package contents will be unzipped at service root level. If entered, a new folder will be created at that level using the specified name and everything will be unzipped there. The folder can only be named using alphanumeric characters and the symbols `. _ -`
-- **forceDownload** is optional. When ommitted or set to *false*, it will only download the library if it is not found, and will save a local copy to reuse every time the service is deployed. Otherwise, if set to *true*, it will download the library every time the service is deployed.
+- **url** is required. This is the packaged library you want to include. The library must be a zip file.
 
-### Deploying
+> Documentation explaining how to create the deployable TensorFlow zipped package can be found here: [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md). This approach can be used as a base to create other stateless libraries.
+
+### Global options
+
+```yaml
+custom:
+  ephemeral:
+    libraries:
+      - build:
+          name: tensorflow
+          version: 1.4.0
+        directory: tfpackage
+      - url: https://xxxxx.s3.amazonaws.com/boto3.zip
+        nocache: true
+```
+
+- **directory** is optional. When ommitted, the package contents will be unzipped at service root level. If entered, a new folder will be created at that level using the specified name and everything will be unzipped there. The folder can only be named using alphanumeric characters and the symbols `. _ -`
+
+- **nocache** is optional. When ommitted or set to *false*, it will use the locally cached copy of the library. Otherwise, if set to *true*, it will re-fetch (download or build) the library every time the service is packaged.
+
+    > Note: the **forceDownload** option has been deprecated as of version 0.6.0 and will be completely removed on future versions. Use **nocache** instead.
+
+## Deploy
 5. Deploy your service normally with the `serverless deploy` (or `sls deploy`) command. If you use the `-v` option, Ephemeral will show more information about the process.
 
     ```bash
     sls deploy -v
     ```
 
-    > Given the plugin bundles libraries, the final zipped asset size may increase considerably. Under slow connections, consider using the `AWS_CLIENT_TIMEOUT` environment variable (see https://github.com/serverless/serverless/issues/490#issuecomment-204976134)
+    > If the Serverless deployment is timing out, use the `AWS_CLIENT_TIMEOUT` environment variable: https://github.com/serverless/serverless/issues/490#issuecomment-204976134
 
 ### The .ephemeral directory
 During the deployment process, the `.ephemeral` directory will be created. The purpose of this directory is:
-* Saving the downloaded library zip files inside the `.ephemeral/lib` folder
+* Saving the libraries' zip files inside the `.ephemeral/lib` folder
 * Bundling the libraries and the Serverless Lambda function file(s) inside the `.ephemeral/pkg` folder
 
 ---
-## Development
+## Contribute
 This plugin is created with Node and uses the Serverless Framework hooks to execute the necessary actions.
 
 ### Installation
@@ -108,7 +158,7 @@ npm test
 
 To run tests on "watch" mode and add verbosity:
 
-```
+```bash
 npm test -- --watch -v
 ```
 
