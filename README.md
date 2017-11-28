@@ -3,9 +3,9 @@
 [![NPM Version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
 
-<img align="left" width="192" src="img/logo192.png" alt="Serephem" />
+![Serephem](img/logo192.png)
 
-Serverless Ephemeral (or Serephem) is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless library into the Lambda deployment artifact.<br><br><br><br>
+Serverless Ephemeral (or Serephem) is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless library into the Lambda deployment artifact.
 
 ## Pre-requirements
 * Node >= 6.9
