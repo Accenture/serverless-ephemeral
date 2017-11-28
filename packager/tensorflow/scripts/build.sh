@@ -2,7 +2,7 @@
 
 build () {
   # Start virtual environment and install TensorFlow
-  SOURCE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-${VERSION}-cp27-none-linux_x86_64.whl
+  SOURCE=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-${version}-cp27-none-linux_x86_64.whl
   . /venv/bin/activate && pip install --upgrade --ignore-installed --no-cache-dir ${SOURCE} && deactivate
 
   # Add __init__.py to google dir to make it a package
@@ -25,16 +25,16 @@ build () {
   for dir in "${dirs[@]}"
   do
     cd ${dir}
-    zip -r9q ${BUILD_DIR}/${NAME} * --exclude \*.pyc
+    zip -r9q ${BUILD_DIR}/${name} * --exclude \*.pyc
   done
 
   ls -l $BUILD_DIR
 }
 
-if [ -z "$VERSION" ]; then
+if [ -z "$version" ]; then
   echo "No TensorFlow version provided"
   exit 1
-elif [ -z "$NAME" ]; then
+elif [ -z "$name" ]; then
   echo "No filename provided"
   exit 1
 else

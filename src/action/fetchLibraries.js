@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const request = require('request');
 const parse = require('url-parse');
+const _ = require('underscore');
 const { rtrim } = require('underscore.string');
 
 const Util = {
@@ -17,14 +18,24 @@ const Util = {
 
 Util.fs = require('../util/fs');
 
-const IMAGES = {
-    tensorflow: 'lambdatensorflow',
+// TODO: create configuration strategy
+const PACKAGERS = {
+    tensorflow: {
+        container: {
+            name: 'lambdatensorflow',
+            outputDir: '/tmp/tensorflow',
+        },
+        requiredOpts: ['version'],
+    },
+    __custom: {
+        requiredOpts: ['container', 'output'],
+    },
 };
 
 module.exports = {
     /**
      * Checks if the libraries zip exists locally
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     checkForLibrariesZip (config) {
@@ -63,7 +74,7 @@ module.exports = {
 
     /**
      * Creates a custom directory inside package dir if specified by user
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     createCustomDirectory (config) {
@@ -98,7 +109,7 @@ module.exports = {
 
     /**
      * Decides whether to download or fetch a package definition and build
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     fetchLibrary (config) {
@@ -106,7 +117,7 @@ module.exports = {
             return BbPromise.resolve(config);
         }
 
-        if (typeof config.build === 'string') {
+        if (config.build !== undefined) {
             return this.buildLibraryZip(config);
         }
 
@@ -114,34 +125,66 @@ module.exports = {
     },
 
     /**
-     * Builds the library zip
-     * @param {Object} config - package configuration
+     * Validates the configuration for building the library on runtime
+     * @param {Object} buildConfig - Build configuration
+     * @returns Error | null
+     */
+    validateBuildConfiguration (buildConfig) {
+        if (!shell.which('docker') || !shell.which('docker-compose')) {
+            return new Error('Docker not found on host machine. Please install it to proceed.');
+        }
+
+        const isCustom = buildConfig.path && !buildConfig.name;
+        let opts = Object.assign({}, buildConfig);
+
+        if (isCustom) {
+            if (!/\.ya?ml/g.test(buildConfig.path)) {
+                return new Error(`${buildConfig.path} is not a Docker compose file`);
+            }
+
+            delete opts.path;
+        } else {
+            const keys = Object.keys(PACKAGERS);
+
+            if (keys.indexOf(buildConfig.name) === -1) {
+                return new Error(`The packager "${buildConfig.name}" is not available. Please use one of the following: ${keys.join(', ')}`);
+            }
+
+            delete opts.name;
+        }
+
+        opts = Object.keys(opts);
+        const name = buildConfig.name || '__custom';
+        const missing = _.difference(PACKAGERS[name].requiredOpts, opts);
+
+        if (missing.length > 0) {
+            return new Error(`The following required options were not provided: ${missing.join(', ')}`);
+        }
+
+        return null;
+    },
+
+    /**
+     * Builds the library via a Serverless Ephemeral provided packager
+     * @param {Object} config - library configuration
      * @returns Promise
      */
-    buildLibraryZip (config) {
-        const keys = Object.keys(IMAGES);
-
-        if (keys.indexOf(config.build) === -1) {
-            return Promise.reject(
-                new Error(`The packager "${config.build}" is not available. Please use one of the following: ${keys.join(', ')}`)
-            );
-        }
-
-        if (!shell.which('docker') || !shell.which('docker-compose')) {
-            return Promise.reject(new Error('Docker not found on host machine. Please install to proceed.'));
-        }
+    buildViaProvidedPackager (config) {
+        const packager = PACKAGERS[config.build.name];
 
         return new Promise((resolve, reject) => {
-            shell.pushd(path.resolve(__dirname, `../../packager/${config.build}`));
+            shell.pushd(path.resolve(__dirname, `../../packager/${config.build.name}`));
             const build = shell.exec('docker-compose build', { async: true });
-            build.on('error', error => reject(error));
+            build.on('error', err => reject(err));
             build.on('close', () => {
-                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:/tmp/tensorflow`;
-                const run = shell.exec(
-                    `docker run -v ${volume} -e VERSION='${config.version}' -e NAME='${config.file.name}' ${IMAGES[config.build]}`,
-                    { async: true }
-                );
-                run.on('error', error => reject(error));
+                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:${packager.container.outputDir}`;
+
+                const envVars = packager.requiredOpts.map(opt => `-e ${opt}='${config.build[opt]}'`);
+                envVars.push(`-e name='${config.file.name}'`);
+
+                const command = `docker run -v ${volume} ${envVars.join(' ')} ${packager.container.name}`;
+                const run = shell.exec(command, { async: true });
+                run.on('error', err => reject(err));
                 run.on('close', () => {
                     shell.popd();
                     resolve(config);
@@ -151,8 +194,60 @@ module.exports = {
     },
 
     /**
+     * Builds the library via a custom packager
+     * @param {Object} config - library configuration
+     * @returns Promise
+     */
+    buildViaCustomPackager (config) {
+        return new Promise((resolve, reject) => {
+            let composePath = config.build.path.substring(0, config.build.path.lastIndexOf('/')) || '.';
+            composePath = path.resolve(`./${composePath.replace(/^\.\//, '')}`);
+
+            shell.pushd(composePath);
+            const build = shell.exec('docker-compose build', { async: true });
+            build.on('error', err => reject(err));
+            build.on('close', () => {
+                const outputDir = () => {
+                    const tokens = config.build.output.split('/');
+                    tokens.pop();
+                    return tokens.join('/');
+                };
+
+                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:${outputDir}`;
+                const command = `docker run -v ${volume} ${config.build.container}`;
+                const run = shell.exec(command, { async: true });
+                run.on('error', err => reject(err));
+                run.on('close', () => {
+                    shell.popd();
+                    resolve(config);
+                });
+            });
+        });
+    },
+
+    /**
+     * Builds the library zip
+     * @param {Object} config - library configuration
+     * @returns Promise
+     */
+    buildLibraryZip (config) {
+        const error = this.validateBuildConfiguration(config.build);
+
+        if (error !== null) {
+            return Promise.reject(error);
+        }
+
+        // TODO: pending refinement
+        // if (config.build.path) {
+        //     return this.buildViaCustomPackager(config);
+        // }
+
+        return this.buildViaProvidedPackager(config);
+    },
+
+    /**
      * Downloads the external libraries zip
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     downloadLibraryZip (config) {
@@ -181,7 +276,7 @@ module.exports = {
 
     /**
      * Unzips libraries to the package directory
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     unzipLibraryToPackageDir (config) {
@@ -194,21 +289,38 @@ module.exports = {
     },
 
     /**
+     * Generates the library name
+     * @param {Object} config - library configuration
+     * @returns string
+     */
+    generateLibName (config) {
+        let name;
+
+        if (config.url) {
+            name = `${parse(config.url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}`;
+        } else if (config.build.name) {
+            switch (config.build.name) {
+                case 'tensorflow':
+                default:  // TODO: modify default as more packages are introduced
+                    name = `${config.build.name}-${config.build.version}`;
+                    break;
+            }
+        } else if (config.build.path) {
+            name = `${config.build.output.match(/([^/]+)(?=\.\w+$)/)[0]}`;
+        }
+
+        name += '.zip';
+
+        return name;
+    },
+
+    /**
      * Pulls the path and zip file name for better usability
-     * @param {Object} config - package configuration
+     * @param {Object} config - library configuration
      * @returns Promise
      */
     prepareLibConfig (libConfig) {
-        let name;
-
-        if (typeof libConfig.build === 'string') {
-            name = `${libConfig.build}-${libConfig.version}`;
-        } else {
-            name = `${parse(libConfig.url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}`;
-        }
-
-        name = `${name}.zip`;
-
+        const name = this.generateLibName(libConfig);
         const filePath = `${this.ephemeral.paths.lib}/${name}`;
 
         libConfig = Object.assign({}, libConfig, {
