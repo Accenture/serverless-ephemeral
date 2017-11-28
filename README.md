@@ -36,7 +36,7 @@ This is a [Serverless Framework plugin](https://serverless.com/framework/docs/pr
 
 1. Add the `.ephemeral` directory to `.gitignore`
 
-```
+```text
 # Serverless Framework
 .serverless
 .ephemeral
