@@ -5,7 +5,7 @@
 
 <img align="left" width="192" src="img/logo192.png" alt="Serephem" />
 
-Serverless Ephemeral is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless library into the Lambda deployment artifact.
+Serverless Ephemeral is a [Serverless Framework plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/) that helps bundling any stateless library into the Lambda deployment artifact.<br><br><br><br>
 
 ## Pre-requirements
 * Node >= 6.9
