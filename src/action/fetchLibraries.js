@@ -18,14 +18,17 @@ const Util = {
 
 Util.fs = require('../util/fs');
 
+// Initialize shell as silent
+shell.config.silent = true;
+
 // TODO: create configuration strategy
 const PACKAGERS = {
     tensorflow: {
         container: {
-            name: 'lambdatensorflow',
             outputDir: '/tmp/tensorflow',
         },
         requiredOpts: ['version'],
+        logMessage: opts => `Building TensorFlow v${opts.version}`,
     },
     __custom: {
         requiredOpts: ['container', 'output'],
@@ -40,7 +43,7 @@ module.exports = {
      */
     checkForLibrariesZip (config) {
         if (config.forceDownload) {
-            this.serverless.cli.vlog('Option "forceDownload" is deprecated. Please use "nocache" instead');
+            this.serverless.cli.log('Option "forceDownload" is deprecated. Please use "nocache" instead');
             config.nocache = config.forceDownload;
         }
 
@@ -172,6 +175,14 @@ module.exports = {
     buildViaProvidedPackager (config) {
         const packager = PACKAGERS[config.build.name];
 
+        if (packager.logMessage) {
+            this.serverless.cli.log(packager.logMessage(config.build));
+        }
+
+        if (this.serverless.cli.isVerbose()) {
+            shell.config.silent = false;
+        }
+
         return new Promise((resolve, reject) => {
             shell.pushd(path.resolve(__dirname, `../../packager/${config.build.name}`));
             const build = shell.exec('docker-compose build', { async: true });
@@ -182,10 +193,11 @@ module.exports = {
                 const envVars = packager.requiredOpts.map(opt => `-e ${opt}='${config.build[opt]}'`);
                 envVars.push(`-e name='${config.file.name}'`);
 
-                const command = `docker run -v ${volume} ${envVars.join(' ')} ${packager.container.name}`;
+                const command = `docker-compose run -v ${volume} ${envVars.join(' ')} packager`;
                 const run = shell.exec(command, { async: true });
                 run.on('error', err => reject(err));
                 run.on('close', () => {
+                    shell.exec('docker-compose rm -f packager');
                     shell.popd();
                     resolve(config);
                 });
