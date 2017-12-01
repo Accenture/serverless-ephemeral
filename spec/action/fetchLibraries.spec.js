@@ -336,7 +336,7 @@ test.serial('Downloads the specified library zip', (t) => {
 
     initServerlessValues(proxyAction);
 
-    proxyAction.serverless.cli.vlog.reset();
+    proxyAction.serverless.cli.log.reset();
 
     const configParam = {
         download: true,
@@ -350,7 +350,7 @@ test.serial('Downloads the specified library zip', (t) => {
         t.true(requestStub.calledWith('http://domain.com/library-A.zip'));
         t.true(fs.createWriteStream.calledWith('.ephemeral/libs/library-A.zip'));
         t.true(streamStub.pipe.calledWith('Zip File'));
-        t.true(proxyAction.serverless.cli.vlog.calledOnce);
+        t.true(proxyAction.serverless.cli.log.calledOnce);
         t.deepEqual(configParam, config);
 
         fs.createWriteStream.restore();

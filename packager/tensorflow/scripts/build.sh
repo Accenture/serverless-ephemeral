@@ -17,25 +17,23 @@ build () {
   find /venv/lib64/python2.7/site-packages -name "*.so" | xargs strip
 
   # Zip libraries
-  BUILD_DIR=/tmp/tensorflow
+  output_dir=/tmp/tensorflow
 
-  mkdir -p $BUILD_DIR
+  mkdir -p $output_dir
   dirs=("/venv/lib/python2.7/site-packages/" "/venv/lib64/python2.7/site-packages/")
 
   for dir in "${dirs[@]}"
   do
     cd ${dir}
-    zip -r9q ${BUILD_DIR}/${name} * --exclude \*.pyc
+    zip -r9q ${output_dir}/${name} * --exclude \*.pyc
   done
-
-  ls -l $BUILD_DIR
 }
 
 if [ -z "$version" ]; then
   echo "No TensorFlow version provided"
   exit 1
 elif [ -z "$name" ]; then
-  echo "No filename provided"
+  echo "No output filename provided"
   exit 1
 else
   build

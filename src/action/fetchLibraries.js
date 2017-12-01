@@ -35,6 +35,9 @@ const PACKAGERS = {
     },
 };
 
+// Initialize shell as silent
+shell.config.silent = true;
+
 module.exports = {
     /**
      * Checks if the libraries zip exists locally
@@ -192,6 +195,7 @@ module.exports = {
 
                 const envVars = packager.requiredOpts.map(opt => `-e ${opt}='${config.build[opt]}'`);
                 envVars.push(`-e name='${config.file.name}'`);
+                envVars.push(`-e output_dir='${packager.container.outputDir}'`);
 
                 const command = `docker-compose run -v ${volume} ${envVars.join(' ')} packager`;
                 const run = shell.exec(command, { async: true });
@@ -264,7 +268,7 @@ module.exports = {
      */
     downloadLibraryZip (config) {
         return new BbPromise((resolve, reject) => {
-            this.serverless.cli.vlog(`Downloading ${config.url}`);
+            this.serverless.cli.log(`Downloading ${config.url}`);
 
             const req = request(config.url);
 
