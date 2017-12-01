@@ -4,5 +4,4 @@ services:
     build: .
     environment:
       - version
-      - output_dir
-      - name
+      - output

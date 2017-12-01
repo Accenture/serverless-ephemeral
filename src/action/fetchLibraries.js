@@ -12,28 +12,10 @@ const parse = require('url-parse');
 const _ = require('underscore');
 const { rtrim } = require('underscore.string');
 
-const Util = {
-    fs: null,
-};
+const packagersConfig = require('../../packager/config');
 
+const Util = { fs: null };
 Util.fs = require('../util/fs');
-
-// Initialize shell as silent
-shell.config.silent = true;
-
-// TODO: create configuration strategy
-const PACKAGERS = {
-    tensorflow: {
-        container: {
-            outputDir: '/tmp/tensorflow',
-        },
-        requiredOpts: ['version'],
-        logMessage: opts => `Building TensorFlow v${opts.version}`,
-    },
-    __custom: {
-        requiredOpts: ['container', 'output'],
-    },
-};
 
 // Initialize shell as silent
 shell.config.silent = true;
@@ -141,27 +123,28 @@ module.exports = {
         }
 
         const isCustom = buildConfig.path && !buildConfig.name;
-        let opts = Object.assign({}, buildConfig);
+        let providedOpts = Object.assign({}, buildConfig);
+        let name;
 
         if (isCustom) {
             if (!/\.ya?ml/g.test(buildConfig.path)) {
                 return new Error(`${buildConfig.path} is not a Docker compose file`);
             }
 
-            delete opts.path;
+            name = '__custom';  // TODO: change when refining custom packagers approach
+            delete providedOpts.path;
         } else {
-            const keys = Object.keys(PACKAGERS);
-
-            if (keys.indexOf(buildConfig.name) === -1) {
-                return new Error(`The packager "${buildConfig.name}" is not available. Please use one of the following: ${keys.join(', ')}`);
+            if (packagersConfig[buildConfig.name] === undefined) {
+                return new Error(`The packager "${buildConfig.name}" does not exist. Please refer to the documentation for available packagers`);
             }
 
-            delete opts.name;
+            name = buildConfig.name;
+            delete providedOpts.name;
         }
 
-        opts = Object.keys(opts);
-        const name = buildConfig.name || '__custom';
-        const missing = _.difference(PACKAGERS[name].requiredOpts, opts);
+        providedOpts = Object.keys(providedOpts);
+        const packager = packagersConfig[name];
+        const missing = _.difference(packager.requiredOpts, providedOpts);
 
         if (missing.length > 0) {
             return new Error(`The following required options were not provided: ${missing.join(', ')}`);
@@ -176,7 +159,7 @@ module.exports = {
      * @returns Promise
      */
     buildViaProvidedPackager (config) {
-        const packager = PACKAGERS[config.build.name];
+        const packager = packagersConfig[config.build.name];
 
         if (packager.logMessage) {
             this.serverless.cli.log(packager.logMessage(config.build));
@@ -191,11 +174,10 @@ module.exports = {
             const build = shell.exec('docker-compose build', { async: true });
             build.on('error', err => reject(err));
             build.on('close', () => {
-                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:${packager.container.outputDir}`;
+                const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:${packager.dir}`;
 
                 const envVars = packager.requiredOpts.map(opt => `-e ${opt}='${config.build[opt]}'`);
-                envVars.push(`-e name='${config.file.name}'`);
-                envVars.push(`-e output_dir='${packager.container.outputDir}'`);
+                envVars.push(`-e output='${packager.dir}/${config.file.name}'`);
 
                 const command = `docker-compose run -v ${volume} ${envVars.join(' ')} packager`;
                 const run = shell.exec(command, { async: true });

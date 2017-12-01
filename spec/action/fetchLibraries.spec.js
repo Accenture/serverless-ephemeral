@@ -318,8 +318,8 @@ test('A requested packager does not exist', (t) => {
     });
 
     t.is(
-        error.message.substring(0, error.message.indexOf(':')),
-        'The packager "foo" is not available. Please use one of the following'
+        error.message,
+        'The packager "foo" does not exist. Please refer to the documentation for available packagers'
     );
 });
 
