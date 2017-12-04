@@ -40,7 +40,7 @@ module.exports = {
         }
 
         return new BbPromise((resolve, reject) => {
-            Util.fs.onPathExists(config.file.path,
+            Util.fs.onPathExistsCb(config.file.path,
                 () => {
                     // if dependencies exist, do not fetch
                     config.refetch = false;

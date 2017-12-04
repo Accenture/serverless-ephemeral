@@ -56,7 +56,7 @@ function initEphemeralValues (act) {
 test.before(() => {
     sinon.stub(fs, 'mkdirSync');
 
-    sinon.stub(Util.fs, 'onPathExists');
+    sinon.stub(Util.fs, 'onPathExistsCb');
     sinon.stub(Util.fs, 'unzip');
 
     initEphemeralValues(action);
@@ -82,8 +82,8 @@ test.serial('Deletes local copy when nocache option is true', (t) => {
 test.serial('Checks if the library zip exists locally', (t) => {
     action.serverless.cli.vlog.reset();
 
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(1);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(1);
 
     return action.checkForLibrariesZip({
         file: {
@@ -91,15 +91,15 @@ test.serial('Checks if the library zip exists locally', (t) => {
         },
         nocache: false,
     }).then((config) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
         t.true(action.serverless.cli.vlog.calledOnce);
         t.false(config.refetch);
     });
 });
 
 test.serial('Checks if the library zip does not exist locally', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(2);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(2);
 
     return action.checkForLibrariesZip({
         file: {
@@ -107,7 +107,7 @@ test.serial('Checks if the library zip does not exist locally', (t) => {
         },
         nocache: false,
     }).then((config) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
         t.true(config.refetch);
     });
 });
@@ -115,8 +115,8 @@ test.serial('Checks if the library zip does not exist locally', (t) => {
 test.serial('There is an error when checking if the library zip exists', async (t) => {
     action.serverless.cli.log.reset();
 
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArgWith(3, 'Error checking');
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArgWith(3, 'Error checking');
 
     const error = await t.throws(action.checkForLibrariesZip({
         file: {
@@ -125,7 +125,7 @@ test.serial('There is an error when checking if the library zip exists', async (
         nocache: false,
     }));
 
-    t.is(Util.fs.onPathExists.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
+    t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
     t.true(action.serverless.cli.log.calledOnce);
     t.is(error, 'Error checking');
 });
@@ -423,7 +423,7 @@ test('Prepares the library\'s configuration with the file info', (t) => {
 });
 
 test.after(() => {
-    Util.fs.onPathExists.restore();
+    Util.fs.onPathExistsCb.restore();
     Util.fs.unzip.restore();
 
     fs.mkdirSync.restore();

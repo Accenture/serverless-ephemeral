@@ -7,6 +7,50 @@ const unzip = require('unzip-stream');
 
 const util = require('../../src/util/fs');
 
+test('A given path exists', (t) => {
+    sinon.stub(fs, 'accessSync');
+
+    const exists = util.onPathExists('/test/path');
+
+    t.true(exists);
+    t.true(fs.accessSync.calledWith('/test/path'));
+
+    fs.accessSync.restore();
+});
+
+test('A given path does not exist', (t) => {
+    sinon.stub(fs, 'accessSync').throws(() => {
+        const err = new Error();
+        err.code = 'ENOENT';
+        return err;
+    });
+
+    const exists = util.onPathExists('/test/path');
+
+    t.false(exists);
+    t.true(fs.accessSync.calledWith('/test/path'));
+
+    fs.accessSync.restore();
+});
+
+
+test('Access to a given path throws an unexpected error', (t) => {
+    sinon.stub(fs, 'accessSync').throws(() => {
+        const err = new Error();
+        err.code = 'UNEXPECTED';
+        return err;
+    });
+
+    const error = t.throws(() => {
+        util.onPathExists('/test/path');
+    }, Error);
+
+    t.is(error.code, 'UNEXPECTED');
+    t.true(fs.accessSync.calledWith('/test/path'));
+
+    fs.accessSync.restore();
+});
+
 test('A callback function is executed when the path exists', (t) => {
     sinon.stub(fs, 'access');
     const cbExistsStub = sinon.stub();
@@ -15,7 +59,7 @@ test('A callback function is executed when the path exists', (t) => {
 
     fs.access.callsArgWith(1, undefined);
 
-    util.onPathExists('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
+    util.onPathExistsCb('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
 
     t.true(fs.access.calledWith('/test/path', sinon.match.typeOf('function')));
     t.true(cbExistsStub.calledOnce);
@@ -38,7 +82,7 @@ test('A callback function is executed when the path does not exist', (t) => {
 
     fs.access.callsArgWith(1, accessError);
 
-    util.onPathExists('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
+    util.onPathExistsCb('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
 
     t.true(fs.access.calledWith('/test/path', sinon.match.typeOf('function')));
     t.true(cbNotExistsStub.calledWith(accessError));
@@ -61,7 +105,7 @@ test('A callback function is executed when an unexpected error happens', (t) => 
 
     fs.access.callsArgWith(1, accessError);
 
-    util.onPathExists('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
+    util.onPathExistsCb('/test/path', cbExistsStub, cbNotExistsStub, cbErrorStub);
 
     t.true(fs.access.calledWith('/test/path', sinon.match.typeOf('function')));
     t.true(cbErrorStub.calledWith(accessError));
