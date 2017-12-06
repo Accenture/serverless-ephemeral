@@ -4,6 +4,8 @@ const validate = () => {
     if (!shell.which('docker') || !shell.which('docker-compose')) {
         throw new Error('Docker not found on host machine. Please install it to proceed.');
     }
+
+    return true;
 };
 
 module.exports = {
