@@ -68,15 +68,13 @@ You can use one of the Docker packagers provided with the Serverless Ephemeral p
 custom:
   ephemeral:
     libraries:
-      - build:
+      - packager:
           name: tensorflow
           version: 1.4.0
 ```
 
-- **build.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
-- **build.version** is required. This will determine which TensorFlow version you want to build.
-
-> For reference, you can look at the TensorFlow packager under [/packager/tensorflow](packager/tensorflow) directory.
+- **packager.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
+- **packager.version** is required. This will determine which TensorFlow version you want to build.
 
 ### Download a library
 
@@ -97,7 +95,7 @@ custom:
 custom:
   ephemeral:
     libraries:
-      - build:
+      - packager:
           name: tensorflow
           version: 1.4.0
         directory: tfpackage
@@ -109,7 +107,7 @@ custom:
 
 - **nocache** is optional. When ommitted or set to *false*, it will use the locally cached copy of the library. Otherwise, if set to *true*, it will re-fetch (download or build) the library every time the service is packaged.
 
-    > Note: the **forceDownload** option has been deprecated as of version 0.6.0 and will be completely removed on future versions. Use **nocache** instead.
+    > Note: the **forceDownload** option has been deprecated in favor of **nocache**
 
 ## Deploy
 5. Deploy your service normally with the `serverless deploy` (or `sls deploy`) command. If you use the `-v` option, Ephemeral will show more information about the process.
@@ -136,7 +134,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
     git clone https://github.com/Accenture/serverless-ephemeral.git
     ```
 
-2. Install the node dependencies
+1. Install the node dependencies
 
     ```bash
     npm i
@@ -168,3 +166,7 @@ npm test -- --watch -v
 [npm-url]: https://npmjs.org/package/serverless-ephemeral
 [travis-image]: https://img.shields.io/travis/Accenture/serverless-ephemeral/master.svg
 [travis-url]: https://travis-ci.org/Accenture/serverless-ephemeral
+
+### Test via examples
+
+Refer to the [`examples`](examples) directory, for instance the [`TensorFlow example`](examples/tensorflow-lambda/README.md).
