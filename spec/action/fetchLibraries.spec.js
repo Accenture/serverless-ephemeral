@@ -9,26 +9,10 @@ const Util = {
     fs: null,
 };
 
+const PackagerFactory = require('../../src/lib/packager/Factory');
 Util.fs = require('../../src/util/fs');
 
-const actionFile = '../../src/action/fetchLibraries';
 const action = require('../../src/action/fetchLibraries');
-
-function getRequestStub () {
-    const streamStub = {
-        pipe: sinon.stub(),
-        on: sinon.stub(),
-    };
-
-    streamStub.pipe.callsFake(() => streamStub);
-    streamStub.on.callsFake(() => streamStub);
-    streamStub.on.withArgs('finish').yields();
-
-    const requestStub = sinon.stub();
-    requestStub.callsFake(() => streamStub);
-
-    return { requestStub, streamStub };
-}
 
 function initServerlessValues (act) {
     act.serverless = {
@@ -40,12 +24,14 @@ function initServerlessValues (act) {
         cli: {
             log: sinon.stub(),
             vlog: sinon.stub(),
+            debug: sinon.stub(),
         },
     };
 }
 
 function initEphemeralValues (act) {
     act.ephemeral = {
+        config: { libraries: [] },
         paths: {
             lib: '.ephemeral/lib',
             pkg: '.ephemeral/pkg',
@@ -56,375 +42,228 @@ function initEphemeralValues (act) {
 test.before(() => {
     sinon.stub(fs, 'mkdirSync');
 
-    sinon.stub(Util.fs, 'onPathExistsCb');
+    sinon.stub(Util.fs, 'onPathExists');
     sinon.stub(Util.fs, 'unzip');
 
     initEphemeralValues(action);
     initServerlessValues(action);
 });
 
-test.serial('Deletes local copy when nocache option is true', (t) => {
+test.serial('Deletes local copy when using user decides not to use cache', (t) => {
     sinon.stub(del, 'sync');
 
-    return action.checkForLibrariesZip({
-        file: {
-            path: '.ephemeral/libs/library-A.zip',
-        },
-        nocache: true,
-    }).then((config) => {
-        t.true(del.sync.calledWith('.ephemeral/libs/library-A.zip'));
-        t.true(config.refetch);
+    const param = {
+        file: { path: '.ephemeral/libs/library-A.zip' },
+        useCached: false,
+    };
 
+    return action.checkForLocalLibrary(param).then((handler) => {
+        t.true(del.sync.calledWith('.ephemeral/libs/library-A.zip'));
+        t.is(handler, param);
         del.sync.restore();
     });
 });
 
-test.serial('Checks if the library zip exists locally', (t) => {
+test('Informs the user it will use the local copy of the library', (t) => {
     action.serverless.cli.vlog.reset();
+    Util.fs.onPathExists.reset();
+    Util.fs.onPathExists.callsFake(() => true);
 
-    Util.fs.onPathExistsCb.reset();
-    Util.fs.onPathExistsCb.callsArg(1);
-
-    return action.checkForLibrariesZip({
+    const param = {
         file: {
-            path: '.ephemeral/libs/library-A.zip',
+            path: '.ephemeral/libs/library-B.zip',
+            filename: 'library-B.zip',
         },
-        nocache: false,
-    }).then((config) => {
-        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
-        t.true(action.serverless.cli.vlog.calledOnce);
-        t.false(config.refetch);
+        useCached: true,
+    };
+
+    return action.checkForLocalLibrary(param).then((handler) => {
+        t.true(Util.fs.onPathExists.calledWith('.ephemeral/libs/library-B.zip'));
+        t.true(action.serverless.cli.vlog.calledWith('Using local copy of library-B.zip'));
+        t.is(handler, param);
     });
 });
 
-test.serial('Checks if the library zip does not exist locally', (t) => {
-    Util.fs.onPathExistsCb.reset();
-    Util.fs.onPathExistsCb.callsArg(2);
+test('Local library is not found when user wants to use cache', (t) => {
+    Util.fs.onPathExists.reset();
+    Util.fs.onPathExists.callsFake(() => false);
 
-    return action.checkForLibrariesZip({
+    const param = {
         file: {
-            path: '.ephemeral/libs/library-A.zip',
+            path: '.ephemeral/libs/library-B.zip',
+            filename: 'library-B.zip',
         },
-        nocache: false,
-    }).then((config) => {
-        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
-        t.true(config.refetch);
+        useCached: true,
+    };
+
+    return action.checkForLocalLibrary(param).then((handler) => {
+        t.true(Util.fs.onPathExists.calledWith('.ephemeral/libs/library-B.zip'));
+        t.false(handler.useCached);
+        t.is(handler.file, param.file);
     });
 });
 
-test.serial('There is an error when checking if the library zip exists', async (t) => {
-    action.serverless.cli.log.reset();
+test.serial('There is an error when checking for the local library', async (t) => {
+    action.serverless.cli.debug.reset();
+    Util.fs.onPathExists.reset();
+    Util.fs.onPathExists.throws(new Error('Unexpected error'));
 
-    Util.fs.onPathExistsCb.reset();
-    Util.fs.onPathExistsCb.callsArgWith(3, 'Error checking');
-
-    const error = await t.throws(action.checkForLibrariesZip({
+    const promise = action.checkForLocalLibrary({
         file: {
-            path: '.ephemeral/libs/library-A.zip',
+            path: '.ephemeral/libs/library-C.zip',
+            filename: 'library-C.zip',
         },
-        nocache: false,
-    }));
+        useCached: true,
+    });
 
-    t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '.ephemeral/libs/library-A.zip');
-    t.true(action.serverless.cli.log.calledOnce);
-    t.is(error, 'Error checking');
+    const error = await t.throws(promise);
+
+    t.true(Util.fs.onPathExists.calledWith('.ephemeral/libs/library-C.zip'));
+    t.true(action.serverless.cli.debug.calledWith('Unexpected error checking for library library-C.zip'));
+    t.is(error.message, 'Unexpected error');
 });
 
 
 test.serial('Creates a custom directory for a specific library', (t) => {
-    const configParam = {
-        directory: 'my-library',
+    const param = {
+        unzipped: { path: '.ephemeral/pkg/my-library' },
     };
 
     fs.mkdirSync.reset();
 
-    action.createCustomDirectory(configParam).then((config) => {
-        const destPath = '.ephemeral/pkg/my-libraries';
-        t.is(config.destinationPath, destPath);
-        t.is(fs.mkdirSync.getCall(0).args[0], destPath);
+    return action.createCustomDirectory(param).then((handler) => {
+        t.is(handler, param);
+        t.true(fs.mkdirSync.calledWith('.ephemeral/pkg/my-library'));
     });
 });
 
 test.serial('Provided custom directory already exists', (t) => {
-    const configParam = {
-        directory: 'my-library',
+    const param = {
+        unzipped: { path: '.ephemeral/pkg/my-library' },
     };
 
     fs.mkdirSync.reset();
     fs.mkdirSync.throws({ code: 'EEXIST' });
 
-    action.createCustomDirectory(configParam).then((config) => {
-        const destPath = '.ephemeral/pkg/my-library';
-        t.is(config.destinationPath, destPath);
-        t.is(fs.mkdirSync.getCall(0).args[0], destPath);
+    return action.createCustomDirectory(param).then((handler) => {
+        t.is(handler, param);
+        t.true(fs.mkdirSync.calledWith('.ephemeral/pkg/my-library'));
     });
 });
 
-test.serial('Provided an invalid custom directory name', async (t) => {
-    const configParam = {
-        directory: 'my/library',
-    };
-
-    const error = await t.throws(action.createCustomDirectory(configParam));
-    t.is(error, 'Directory name can only include alphanumeric characters and symbols -_.');
-});
-
 test.serial('An unexpected error occurs when creating the custom directory', async (t) => {
-    const configParam = {
-        directory: 'my-library',
+    const param = {
+        unzipped: { path: '.ephemeral/pkg/my-library' },
     };
 
     fs.mkdirSync.reset();
     fs.mkdirSync.throws({ code: 'UNEXPECTED' });
 
-    const error = await t.throws(action.createCustomDirectory(configParam));
-    t.is(error, 'Unexpected error creating directory .ephemeral/pkg/my-library');
+    const error = await t.throws(action.createCustomDirectory(param));
+    t.true(fs.mkdirSync.calledWith('.ephemeral/pkg/my-library'));
+    t.is(error.code, 'UNEXPECTED');
 });
 
-test.serial('Library is found locally, so nothing to build/download', (t) => {
-    const configParam = {
-        refetch: false,
+test('Library is found locally, so nothing to build/download', (t) => {
+    const param = { useCached: true };
+
+    return action.fetchLibrary(param).then((handler) => {
+        t.is(param, handler);
+    });
+});
+
+test('Fetches (build/download) the library', (t) => {
+    const param = {
+        useCached: false,
+        fetch: sinon.stub().callsFake(() => Promise.resolve()),
     };
 
-    sinon.spy(action, 'buildLibraryZip');
-    sinon.spy(action, 'downloadLibraryZip');
-
-    return action.fetchLibrary(configParam).then((config) => {
-        t.false(action.buildLibraryZip.called);
-        t.false(action.downloadLibraryZip.called);
-        t.is(config, configParam);
-
-        action.downloadLibraryZip.restore();
-        action.buildLibraryZip.restore();
+    return action.fetchLibrary(param).then((handler) => {
+        t.true(param.fetch.called);
+        t.is(param, handler);
     });
 });
 
-test.serial('Decides to build the library', (t) => {
-    const configParam = {
-        build: 'tensorflow',
-        refetch: true,
-    };
-
-    sinon.spy(action, 'downloadLibraryZip');
-    sinon.stub(action, 'buildLibraryZip')
-        .callsFake(config => Promise.resolve(config));
-
-    return action.fetchLibrary(configParam).then((config) => {
-        t.false(action.downloadLibraryZip.called);
-        t.true(action.buildLibraryZip.calledWith(config));
-
-        action.buildLibraryZip.restore();
-        action.downloadLibraryZip.restore();
-    });
-});
-
-test.serial('Decides to download the library', (t) => {
-    const configParam = {
-        url: 'http://domain.com/library-A.zip',
-        refetch: true,
-    };
-
-    sinon.spy(action, 'buildLibraryZip');
-    sinon.stub(action, 'downloadLibraryZip')
-        .callsFake(config => Promise.resolve(config));
-
-    return action.fetchLibrary(configParam).then((config) => {
-        t.false(action.buildLibraryZip.called);
-        t.true(action.downloadLibraryZip.calledWith(config));
-
-        action.downloadLibraryZip.restore();
-        action.buildLibraryZip.restore();
-    });
-});
-
-test('Build configuration for a custom packager is valid', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        path: 'path/to/docker-compose.yml',
-        container: 'mylibcontainer',
-        output: '/tmp/libraries/my-lib.zip',
-    });
-
-    t.is(error, null);
-});
-
-test('Path to Docker compose file for custom packager is not valid', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        path: 'path/to/docker-configuration.txt',
-        container: 'mylibcontainer',
-        output: '/tmp/libraries/my-lib.zip',
-    });
-
-    t.is(error.message, 'path/to/docker-configuration.txt is not a Docker compose file');
-});
-
-test('Build configuration for a custom packager is missing options', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        path: 'path/to/docker-compose.yml',
-    });
-
-    t.is(error.message, 'The following required options were not provided: container, output');
-});
-
-test('Build configuration for an existing packager is valid', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        name: 'tensorflow',
-        version: '1.0.0',
-    });
-
-    t.is(error, null);
-});
-
-test('Build configuration for an existing packager is missing options', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        name: 'tensorflow',
-    });
-
-    t.is(error.message, 'The following required options were not provided: version');
-});
-
-test('A requested packager does not exist', (t) => {
-    const shelljs = { which: sinon.stub() };
-    shelljs.which.callsFake(() => true);
-
-    const proxyAction = proxyquire(actionFile, { shelljs });
-
-    const error = proxyAction.validateBuildConfiguration({
-        name: 'foo',
-    });
-
-    t.is(
-        error.message,
-        'The packager "foo" does not exist. Please refer to the documentation for available packagers'
-    );
-});
-
-
-test.serial('Downloads the specified library zip', (t) => {
-    const { requestStub, streamStub } = getRequestStub();
-
-    sinon.stub(fs, 'createWriteStream').callsFake(() => 'Zip File');
-
-    // proxyquire action to stub the request module
-    const proxyAction = proxyquire(actionFile, {
-        request: requestStub,
-    });
-
-    initServerlessValues(proxyAction);
-
-    proxyAction.serverless.cli.log.reset();
-
-    const configParam = {
-        download: true,
-        url: 'http://domain.com/library-A.zip',
-        file: {
-            path: '.ephemeral/libs/library-A.zip',
-        },
-    };
-
-    return proxyAction.downloadLibraryZip(configParam).then((config) => {
-        t.true(requestStub.calledWith('http://domain.com/library-A.zip'));
-        t.true(fs.createWriteStream.calledWith('.ephemeral/libs/library-A.zip'));
-        t.true(streamStub.pipe.calledWith('Zip File'));
-        t.true(proxyAction.serverless.cli.log.calledOnce);
-        t.deepEqual(configParam, config);
-
-        fs.createWriteStream.restore();
-    });
-});
-
-test.serial('Unzips the library to the Ephemeral package directory', (t) => {
+test('Unzips the library to the Ephemeral package directory', (t) => {
     Util.fs.unzip.reset();
 
     action.unzipLibraryToPackageDir({
-        destinationPath: '.ephemeral/pkg/my-libraries',
-        file: {
-            path: '.ephemeral/lib/library-A.zip',
-        },
+        unzipped: { path: '.ephemeral/pkg/my-libraries' },
+        file: { path: '.ephemeral/lib/library-A.zip' },
     });
 
     t.is(Util.fs.unzip.getCall(0).args[0], '.ephemeral/lib/library-A.zip');
     t.is(Util.fs.unzip.getCall(0).args[1], '.ephemeral/pkg/my-libraries');
 });
 
-test('Generates the zip name when using a provided packager', (t) => {
-    const name = action.generateLibName({
-        build: {
-            name: 'tensorflow',
-            version: '1.0.0',
-        },
-    });
-
-    t.is(name, 'tensorflow-1.0.0.zip');
+test('"directory" leading/trailing slash will be removed', (t) => {
+    const clean = action.validateConfig({ directory: '/folder/' });
+    t.is(clean.directory, 'folder');
 });
 
-test('Generates the zip name when using a custom packager', (t) => {
-    const name = action.generateLibName({
-        build: {
-            path: 'path/to/docker-compose.yml',
-            container: 'mylibcontainer',
-            output: '/tmp/libraries/my-lib.zip',
-        },
-    });
-
-    t.is(name, 'my-lib.zip');
+test('"directory" contains invalid characters', (t) => {
+    const error = t.throws(() => action.validateConfig({ directory: 'bad/name' }));
+    t.is(error.message, '"directory" can only include alphanumeric characters and symbols -_.');
 });
 
-test('Generates the zip name when downloading the library', (t) => {
-    const name = action.generateLibName({
-        url: 'http://domain.com/path/library-A.zip',
-    });
+test('Creates a packager handler', (t) => {
+    sinon.stub(action, 'validateConfig').returnsArg(0);
+    sinon.stub(PackagerFactory, 'build');
+    PackagerFactory.build.callsFake(() => ({
+        addDirectory: sinon.stub(),
+    }));
 
-    t.is(name, 'library-A.zip');
-});
-
-test('Prepares the library\'s configuration with the file info', (t) => {
-    sinon.stub(action, 'generateLibName').callsFake(() => 'name.zip');
-
-    const result = action.prepareLibConfig({
-        url: 'http://domain.com/path/library-A.zip',
+    const libConfig = {
+        packager: 'PACKAGER INFO',
+        directory: 'dir',
         nocache: true,
-    });
+    };
 
-    t.deepEqual(result, {
-        url: 'http://domain.com/path/library-A.zip',
-        nocache: true,
-        file: {
-            name: 'name.zip',
-            path: '.ephemeral/lib/name.zip',
+    action.ephemeral.config.libraries.push(libConfig);
+
+    const handler = action.createLibHandlers()[0];
+
+    t.false(handler.useCached);
+    t.true(handler.addDirectory.calledWith('dir'));
+    t.true(PackagerFactory.build.calledWith(action.serverless, action.ephemeral, 'PACKAGER INFO'));
+
+    action.ephemeral.config.libraries = [];
+    action.validateConfig.restore();
+});
+
+test('Creates a download handler', (t) => {
+    let url;
+    const proxyAction = proxyquire('../../src/action/fetchLibraries', {
+        '../lib/download': function Download (s, e, u) {
+            url = u;
+            this.addDirectory = sinon.stub();
         },
     });
 
-    action.generateLibName.restore();
+    initServerlessValues(proxyAction);
+    initEphemeralValues(proxyAction);
+
+    sinon.stub(proxyAction, 'validateConfig').returnsArg(0);
+
+    const libConfig = {
+        url: 'https://www.domain.com/library.zip',
+        directory: 'dir',
+    };
+
+    proxyAction.ephemeral.config.libraries.push(libConfig);
+
+    const handler = proxyAction.createLibHandlers()[0];
+
+    t.true(handler.useCached);
+    t.true(handler.addDirectory.calledWith('dir'));
+    t.is(url, 'https://www.domain.com/library.zip');
+
+    proxyAction.ephemeral.config.libraries = [];
+    proxyAction.validateConfig.restore();
 });
 
 test.after(() => {
-    Util.fs.onPathExistsCb.restore();
+    Util.fs.onPathExists.restore();
     Util.fs.unzip.restore();
-
     fs.mkdirSync.restore();
 });

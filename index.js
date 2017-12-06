@@ -8,7 +8,7 @@ const createDirectories = require('./src/action/createDirectories');
 const copyServerlessArtifacts = require('./src/action/copyServerlessArtifacts');
 const fetchLibraries = require('./src/action/fetchLibraries');
 const packDependencies = require('./src/action/packDependencies');
-const { isVerbose, vlog } = require('./src/util/cli');
+const { isVerbose, vlog, debug } = require('./src/util/cli');
 
 const EPHEMERAL_DIR_NAME = '.ephemeral';
 
@@ -42,6 +42,7 @@ class ServerlessEphemeral {
         // Extend the Serverless CLI
         this.serverless.cli.isVerbose = isVerbose.bind(this);
         this.serverless.cli.vlog = vlog.bind(this);
+        this.serverless.cli.debug = debug.bind(this);
 
         /**
          * Hooks that fire before or after core Serverless lifecycle events
