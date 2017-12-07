@@ -107,7 +107,8 @@ You can create your own packager via Docker. To do so:
     FROM amazonlinux
 
     COPY scripts/build.sh scripts/build.sh
-    RUN chmod +x scripts/build.sh
+    RUN yum -y install zip && \
+        chmod +x scripts/build.sh
 
     CMD [ "scripts/build.sh" ]
     ```
@@ -118,7 +119,8 @@ You can create your own packager via Docker. To do so:
     mkdir -p /tmp/lambda-libraries
 
     # download library files
-    mkdir /tmp/files && cd /tmp/files
+    mkdir /tmp/files
+    cd /tmp/files
     curl http://example.com/file-1.py --output file-1.py
     curl http://example.com/file-2.py --output file-2.py
     zip -9rq /tmp/lambda-libraries/library-a.zip *
@@ -150,7 +152,7 @@ You can create your own packager via Docker. To do so:
 
     * `service`: the name of the service inside the `docker-compose.yml` file
 
-    * `output`: the output path for the zip in the Docker container
+    * `output`: the output path for the zip file in the Docker container
 
 ### Download a library
 
