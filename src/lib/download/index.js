@@ -4,14 +4,14 @@ const parse = require('url-parse');
 const request = require('request');
 
 const Fetch = require('../Fetch');
-const Library = require('../Library');
+const FilePath = require('../../util/FilePath');
 
 class Download extends Fetch {
     constructor (serverless, ephemeral, url) {
         super(serverless, ephemeral);
 
         this.url = url;
-        this.file = new Library(
+        this.file = new FilePath(
             `${this.ephemeral.paths.lib}`,
             `${parse(url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}.zip`
         );

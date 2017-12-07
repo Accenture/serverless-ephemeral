@@ -1,4 +1,4 @@
-const Library = require('./Library');
+const FilePath = require('../util/FilePath');
 
 class Fetch {
     constructor (serverless, ephemeral, options = {}) {
@@ -7,7 +7,7 @@ class Fetch {
 
         this.file = null;  // set on child libraries
         this.useCached = options.useCached === undefined ? true : !!options.useCached;
-        this.unzipped = new Library(this.ephemeral.paths.pkg);
+        this.unzipped = new FilePath(this.ephemeral.paths.pkg);
     }
 
     addDirectory (path = '') {

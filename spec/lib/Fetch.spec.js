@@ -2,7 +2,7 @@ const test = require('ava');
 const proxyquire = require('proxyquire');
 
 const Fetch = proxyquire('../../src/lib/Fetch', {
-    './Library': function Library (dir) {
+    '../util/FilePath': function FilePath (dir) {
         this.dir = dir;
     },
 });

@@ -2,7 +2,7 @@ const shell = require('shelljs');
 const parsePath = require('parse-filepath');
 
 const Fetch = require('../Fetch');
-const Library = require('../Library');
+const FilePath = require('../../util/FilePath');
 
 class Packager extends Fetch {
     constructor (serverless, ephemeral, options = {}) {
@@ -26,7 +26,7 @@ class Packager extends Fetch {
             throw new Error('"filename" must be a zip file');
         }
 
-        this.file = new Library(
+        this.file = new FilePath(
             `${this.ephemeral.paths.lib}`,
             options.filename
         );
