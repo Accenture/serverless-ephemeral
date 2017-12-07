@@ -11,11 +11,12 @@ class PackagerFactory {
      * @return {Object} The packager class
      */
     static build (serverless, ephemeral, options = {}) {
-        options.name = options.name || '';
+        options.name = options.name || '__custom';
 
         switch (options.name) {
             case 'tensorflow':
                 return new TensorFlow(serverless, ephemeral, options);
+            case '__custom':
             default:
                 return new CustomPackager(serverless, ephemeral, options);
         }

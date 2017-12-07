@@ -14,7 +14,7 @@ class Packager extends Fetch {
 
         this.name = options.name;
 
-        if (!options.filename) {
+        if (options.output) {
             const parsed = parsePath(options.output);
 
             if (parsed.ext !== '.zip') {
@@ -22,6 +22,8 @@ class Packager extends Fetch {
             }
 
             options.filename = parsed.base;
+        } else if (options.filename && !/\.zip$/.test(options.filename)) {
+            throw new Error('"filename" must be a zip file');
         }
 
         this.file = new Library(

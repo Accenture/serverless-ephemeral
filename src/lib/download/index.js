@@ -10,12 +10,7 @@ class Download extends Fetch {
     constructor (serverless, ephemeral, url) {
         super(serverless, ephemeral);
 
-        if (!url) {
-            throw new Error('No "url" was defined');
-        }
-
         this.url = url;
-
         this.file = new Library(
             `${this.ephemeral.paths.lib}`,
             `${parse(url).pathname.match(/([^/]+)(?=\.\w+$)/)[0]}.zip`
@@ -40,7 +35,7 @@ class Download extends Fetch {
             });
 
             output.on('error', (error) => {
-                this.serverless.cli.debug('Error creating zip file');
+                this.serverless.cli.debug('Error creating the zip file');
                 reject(error);
             });
         });

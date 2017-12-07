@@ -6,7 +6,7 @@ class Fetch {
         this.ephemeral = ephemeral;
 
         this.file = null;  // set on child libraries
-        this.useCached = options.useCached || true;
+        this.useCached = options.useCached === undefined ? true : !!options.useCached;
         this.unzipped = new Library(this.ephemeral.paths.pkg);
     }
 
@@ -18,7 +18,7 @@ class Fetch {
 
     // eslint-disable-next-line class-methods-use-this
     fetch () {
-        throw new Error('fetch must be implemented in child class');
+        throw new Error('"fetch" must be implemented in child class');
     }
 }
 

@@ -1,5 +1,6 @@
 const path = require('path');
 const shell = require('shelljs');
+const { rtrim } = require('underscore.string');
 
 const Packager = require('../index');
 const dockerCompose = require('../../../util/docker-compose');
@@ -10,7 +11,7 @@ class TensorFlow extends Packager {
             throw new Error('TensorFlow "version" was not provided');
         }
 
-        options.filename = `${options.name}-${options.version}`;
+        options.filename = `${options.name}-${options.version}.zip`;
         super(serverless, ephemeral, options);
 
         this.version = options.version;
@@ -23,7 +24,8 @@ class TensorFlow extends Packager {
 
         const container = 'packager';
         const dir = '/tmp/tensorflow';
-        const volume = `${this.serverless.config.servicePath}/${this.ephemeral.paths.lib}:${dir}`;
+        const volume =
+            `${rtrim(this.serverless.config.servicePath, '/')}/${this.ephemeral.paths.lib}:${dir}`;
         const environment = {
             version: this.version,
             output: `${dir}/${this.file.filename}`,

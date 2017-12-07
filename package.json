@@ -34,7 +34,7 @@
   "scripts": {
     "lint": "eslint {,**/}*.js",
     "lint:fix": "npm run lint -- --fix",
-    "test": "ava spec/{,**/}*.spec.js",
+    "test": "ava 'spec/**/*.spec.js'",
     "test:watch": "npm test -- --watch"
   },
   "pre-commit": [
