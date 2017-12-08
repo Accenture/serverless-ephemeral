@@ -13,7 +13,7 @@ Serverless Ephemeral (or Serephem) is a [Serverless Framework plugin](https://se
 * Docker (with docker compose)
 
 ## Examples
-* [TensorFlow Lambda](examples/tensorflow-lambda): Uses Serverless Ephemeral to pull in a packaged TensorFlow (see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)) and add the library to Python Lambdas.
+* [TensorFlow Lambda](examples/tensorflow-lambda): Uses Serephem to pull in a packaged TensorFlow (see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)) and add the library to Python Lambdas.
 
 ## Add the plugin
 1. Install it
@@ -58,9 +58,11 @@ Both can be enhanced with [global configuration options](#global-options).
 
 You can build a specific library during runtime. This is achieved via a Docker container that outputs a zip library.
 
-#### Serverless Ephemeral packagers
+The Serepehm plugin provides some useful packagers out of the box. However, you can create your own packager via Docker files.
 
-You can use one of the Docker packagers provided with the Serverless Ephemeral plugin.
+#### Serephem packagers
+
+You can use one of the Docker packagers provided with the Serephem plugin.
 
 ##### TensorFlow
 
@@ -68,15 +70,89 @@ You can use one of the Docker packagers provided with the Serverless Ephemeral p
 custom:
   ephemeral:
     libraries:
-      - build:
+      - packager:
           name: tensorflow
           version: 1.4.0
 ```
 
-- **build.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
-- **build.version** is required. This will determine which TensorFlow version you want to build.
+- **packager.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
+- **packager.version** is required. This will determine which TensorFlow version you want to build.
 
-> For reference, you can look at the TensorFlow packager under [/packager/tensorflow](packager/tensorflow) directory.
+#### Build your own packager
+
+You can create your own packager via Docker. To do so:
+
+1. Create a directory where you will store all your Docker files:
+
+    ```bash
+    mkdir my-packager
+    cd my-packager
+    ```
+
+1. Create a `docker-compose.yml` file. For example:
+
+    ```yaml
+    version: '3'
+    services:
+      packager:
+        build: .
+    ```
+
+    Keep note of the name of your packager service, in this case `packager`.
+
+1. Create a `Dockerfile` and any other support files. For example:
+
+    **`Dockerfile`**
+    ```yaml
+    FROM amazonlinux
+
+    COPY scripts/build.sh scripts/build.sh
+    RUN yum -y install zip && \
+        chmod +x scripts/build.sh
+
+    CMD [ "scripts/build.sh" ]
+    ```
+
+    **`scripts/build.sh`**
+    ```bash
+    # create zip destination directory
+    mkdir -p /tmp/lambda-libraries
+
+    # download library files
+    mkdir /tmp/files
+    cd /tmp/files
+    curl http://example.com/file-1.py --output file-1.py
+    curl http://example.com/file-2.py --output file-2.py
+    zip -9rq /tmp/lambda-libraries/library-a.zip *
+    ```
+
+    **IMPORTANT**: the container must generate a zip file containing the stateless library files. Thus:
+
+    * Your container must zip the stateless library files.
+
+    * You must create a directory where the final zip(s) will be stored. This directory will be mounted to the Serephem's libraries directory, so add only the necessary zip files.
+
+    * It is recommended that your Docker container extends from `amazonlinux` image to maximize compatibility with the Lambda environment.
+
+1. Add this configuration to your `serverless.yml`:
+
+    ```yaml
+    custom:
+      ephemeral:
+        libraries:
+        - packager:
+            compose: my-packager/docker-compose.yml
+            service: packager
+            output: /tmp/lambda-libraries/library-a.zip
+    ```
+
+    Notice how each of the values correspond to a setting previously created:
+
+    * `compose`: points to your Docker compose file, inside the directory you created
+
+    * `service`: the name of the service inside the `docker-compose.yml` file
+
+    * `output`: the output path for the zip file in the Docker container
 
 ### Download a library
 
@@ -97,7 +173,7 @@ custom:
 custom:
   ephemeral:
     libraries:
-      - build:
+      - packager:
           name: tensorflow
           version: 1.4.0
         directory: tfpackage
@@ -109,7 +185,7 @@ custom:
 
 - **nocache** is optional. When ommitted or set to *false*, it will use the locally cached copy of the library. Otherwise, if set to *true*, it will re-fetch (download or build) the library every time the service is packaged.
 
-    > Note: the **forceDownload** option has been deprecated as of version 0.6.0 and will be completely removed on future versions. Use **nocache** instead.
+    > Note: the **forceDownload** option has been deprecated in favor of **nocache**
 
 ## Deploy
 5. Deploy your service normally with the `serverless deploy` (or `sls deploy`) command. If you use the `-v` option, Ephemeral will show more information about the process.
@@ -136,7 +212,7 @@ This plugin is created with Node and uses the Serverless Framework hooks to exec
     git clone https://github.com/Accenture/serverless-ephemeral.git
     ```
 
-2. Install the node dependencies
+1. Install the node dependencies
 
     ```bash
     npm i
@@ -168,3 +244,7 @@ npm test -- --watch -v
 [npm-url]: https://npmjs.org/package/serverless-ephemeral
 [travis-image]: https://img.shields.io/travis/Accenture/serverless-ephemeral/master.svg
 [travis-url]: https://travis-ci.org/Accenture/serverless-ephemeral
+
+### Test via examples
+
+Refer to the [`examples`](examples) directory, for instance the [`TensorFlow example`](examples/tensorflow-lambda/README.md).

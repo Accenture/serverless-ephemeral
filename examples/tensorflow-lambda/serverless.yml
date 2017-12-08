@@ -14,13 +14,14 @@ package:
 custom:
   ephemeral:
     libraries:
-      - build:
+      - packager:
           name: tensorflow
           version: 1.4.0
         directory: tfpackage
-        nocache: true
+        # nocache: true
       # - url: https://s3-us-west-2.amazonaws.com/liquid-studio-tensorflow/tensorflow-1.2.0-cp27-none-linux_x86_64.zip
       #   directory: tensorflow-1.2.0
+      #   nocache: true
 
 provider:
   name: aws

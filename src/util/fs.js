@@ -13,6 +13,25 @@ module.exports = {
     },
 
     /**
+     * Checks if a specified path exists or not
+     * @param {string} path - The path to the file or folder
+     * @returns boolean
+     * @throws Unexpected error (other than ENOENT)
+     */
+    onPathExists (path) {
+        try {
+            fs.accessSync(path);
+            return true;
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                return false;
+            }
+
+            throw err;
+        }
+    },
+
+    /**
      * Utility that helps executing code whenever a path/file
      * exists, does not exist, or there is an error
      * @param {string} path - The path to the file or folder
@@ -20,7 +39,7 @@ module.exports = {
      * @param {function} [cbNotExists] - A callback to execute when the path does not exist
      * @param {function} [cbError] - A callback to execute when there is an error
      */
-    onPathExists (path, cbExists, cbNotExists = () => {}, cbError = () => {}) {
+    onPathExistsCb (path, cbExists, cbNotExists = () => {}, cbError = () => {}) {
         fs.access(path, (accessError) => {
             if (accessError) {
                 if (accessError.code === 'ENOENT') {

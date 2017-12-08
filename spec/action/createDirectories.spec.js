@@ -33,37 +33,37 @@ action.ephemeral = {
 
 test.before(() => {
     sinon.stub(Util.fs.promises, 'mkdir');
-    sinon.stub(Util.fs, 'onPathExists');
+    sinon.stub(Util.fs, 'onPathExistsCb');
 });
 
 test.serial('Callback when Ephemeral directory exists', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(1);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(1);
 
     return action.checkEphemeralDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral');
         t.false(create);
     });
 });
 
 test.serial('Callback when Ephemeral directory does not exist', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(2);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(2);
 
     return action.checkEphemeralDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral');
         t.true(create);
     });
 });
 
 test.serial('Callback when there is an error accessing the Ephemeral directory', (t) => {
-    Util.fs.onPathExists.reset();
+    Util.fs.onPathExistsCb.reset();
     action.serverless.cli.log.reset();
 
-    Util.fs.onPathExists.callsArgWith(3, 'Access Error');
+    Util.fs.onPathExistsCb.callsArgWith(3, 'Access Error');
 
     return action.checkEphemeralDirExists().catch((error) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral');
         t.is(error, 'Access Error');
         t.true(action.serverless.cli.log.calledOnce);
     });
@@ -102,33 +102,33 @@ test.serial('Creates the Ephemeral files package directory', (t) => {
 });
 
 test.serial('Callback when Ephemeral libraries directory exists', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(1);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(1);
 
     return action.checkLibrariesDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral/lib');
         t.false(create);
     });
 });
 
 test.serial('Callback when Ephemeral libraries directory does not exist', (t) => {
-    Util.fs.onPathExists.reset();
-    Util.fs.onPathExists.callsArg(2);
+    Util.fs.onPathExistsCb.reset();
+    Util.fs.onPathExistsCb.callsArg(2);
 
     return action.checkLibrariesDirExists().then((create) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral/lib');
         t.true(create);
     });
 });
 
 test.serial('Callback when there is an error accessing the Ephemeral libraries directory', (t) => {
-    Util.fs.onPathExists.reset();
+    Util.fs.onPathExistsCb.reset();
     action.serverless.cli.log.reset();
 
-    Util.fs.onPathExists.callsArgWith(3, 'Access Error');
+    Util.fs.onPathExistsCb.callsArgWith(3, 'Access Error');
 
     return action.checkLibrariesDirExists().catch((error) => {
-        t.is(Util.fs.onPathExists.getCall(0).args[0], '/service/.ephemeral/lib');
+        t.is(Util.fs.onPathExistsCb.getCall(0).args[0], '/service/.ephemeral/lib');
         t.is(error, 'Access Error');
         t.true(action.serverless.cli.log.calledOnce);
     });
@@ -156,5 +156,5 @@ test.serial('Does not create the Ephemeral libraries directory when create param
 
 test.after(() => {
     Util.fs.promises.mkdir.restore();
-    Util.fs.onPathExists.restore();
+    Util.fs.onPathExistsCb.restore();
 });

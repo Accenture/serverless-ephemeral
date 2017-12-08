@@ -2,3 +2,6 @@ version: '3'
 services:
   packager:
     build: .
+    environment:
+      - version
+      - output

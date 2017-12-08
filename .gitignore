@@ -39,3 +39,7 @@ admin.env
 .serverless
 .ephemeral
 packager/**/*.zip
+
+#EXAMPLES
+examples
+!examples/tensorflow-lambda

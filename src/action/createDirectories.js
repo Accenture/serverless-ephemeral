@@ -17,7 +17,7 @@ module.exports = {
      */
     checkEphemeralDirExists () {
         return new BbPromise((resolve, reject) => {
-            Util.fs.onPathExists(this.ephemeral.paths.base,
+            Util.fs.onPathExistsCb(this.ephemeral.paths.base,
                 () => {
                     // nothing is done if it exists
                     resolve(false);
@@ -63,7 +63,7 @@ module.exports = {
      */
     checkLibrariesDirExists () {
         return new BbPromise((resolve, reject) => {
-            Util.fs.onPathExists(this.ephemeral.paths.lib,
+            Util.fs.onPathExistsCb(this.ephemeral.paths.lib,
                 () => {
                     // nothing is done if it exists
                     resolve(false);

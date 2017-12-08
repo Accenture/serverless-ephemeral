@@ -6,14 +6,14 @@ This is a demo that integrates [Tensorflow](https://www.tensorflow.org/) with AW
 * An AWS account
 
 ## Get started
-Once inside this example's directory, install Serverless Ephemeral.
+Once inside this example's directory, install Serephem.
 
 ```bash
 $ npm i
 ```
 
 ## Deploy
-The Serverless Ephemeral plugin will take care of retrieving all the TensorFlow dependencies and injecting them into the Serverless Lambdas zip artifact prior to deploying to AWS.
+The Serephem plugin will take care of retrieving all the TensorFlow dependencies and injecting them into the Serverless Lambdas zip artifact prior to deploying to AWS.
 
 Make sure you configure the `serverless.yml` file to your necessities before deploying (i.e. `region`, `stage`, `profile`...)
 
@@ -23,8 +23,8 @@ $ sls deploy -v
 
 > Remember to run `sls remove` when finished with this demo.
 
-## Demos
-This project feature 2 demos:
+## Lambdas
+This project features 2 Lambdas:
 * A TensorFlow addition of two numbers
 * A NumPy that prints properties of a matrix
 
@@ -81,3 +81,18 @@ None.
   }
 }
 ```
+
+## Local testing of Serephem plugin
+
+In case you want to use this example to locally test the Serephem plugin, you can do the following:
+
+1. Open a new terminal window and go to the Serephem root folder
+
+1. Run `npm link`
+
+1. Return to the terminal window for the `tensorflow-lambda` example
+
+1. Run `npm link serverless-ephemeral`
+
+1. Run `sls package -v` to see your changes
+
