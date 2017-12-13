@@ -7,8 +7,12 @@ class FilePath {
     }
 
     static fromPath (path) {
+        const noFile = path.charAt(path.length - 1) === '/' || !/([^/]+)(?=\.\w+$)/g.test(path);
         const parsed = parsePath(path);
-        return new FilePath(parsed.dir, parsed.base);
+        const dir = (parsed.dir || '.') + (noFile ? `/${parsed.base}` : '');
+        const filename = noFile ? '' : parsed.base;
+
+        return new FilePath(dir, filename);
     }
 
     get path () {
