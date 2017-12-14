@@ -8,10 +8,6 @@ build () {
   # Add __init__.py to google dir to make it a package
   touch /venv/lib64/python2.7/site-packages/google/__init__.py
 
-  # Remove unnecessary libraries to save space
-  cd /venv/lib/python2.7/site-packages
-  rm -rf easy_install* pip* setup_tools* wheel*
-
   # Remove *.so binaries to save space
   find /venv/lib/python2.7/site-packages -name "*.so" | xargs strip
   find /venv/lib64/python2.7/site-packages -name "*.so" | xargs strip
@@ -23,6 +19,7 @@ build () {
   for dir in "${dirs[@]}"
   do
     cd ${dir}
+    rm -rf easy_install* pip* setup_tools* setuptools* wheel*    # Remove unnecessary libraries to save space
     zip -r9q ${output} * --exclude \*.pyc
   done
 }

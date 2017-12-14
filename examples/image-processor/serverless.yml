@@ -1,0 +1,54 @@
+service: serephem-image-processor
+
+plugins:
+  - serverless-ephemeral
+
+package:
+  exclude:
+    - package.json
+    - package-lock.json
+    - README.md
+    - node_modules/**
+    - .ephemeral/**
+    - docker/**
+
+
+custom:
+  ephemeral:
+    libraries:
+      - packager:
+          compose: docker/docker-compose.yml
+          service: imgprocessor
+          output: /tmp/libs/image-processor.zip
+        directory: image-processor
+
+provider:
+  name: aws
+  runtime: python2.7
+  stage: dev
+  region: us-east-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+        - s3:GetObject
+        - s3:GetObjectAcl
+        - s3:PutObject
+        - s3:PutObjectAcl
+      Resource: "*"
+
+functions:
+  processor:
+    handler: images.process
+    events:
+      - s3:
+          bucket: srphm-image-processor
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: original/
+
+  test:
+    handler: images.test
