@@ -43,3 +43,4 @@ packager/**/*.zip
 #EXAMPLES
 examples
 !examples/tensorflow-lambda
+!examples/image-processor
