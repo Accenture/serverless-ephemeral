@@ -23,7 +23,7 @@ This is a demo that uses Python [Pillow](https://python-pillow.org/) within AWS 
 
 ### S3 Bucket
 
-An S3 bucket named `serephem-image-processor` is created on deployment. Here you will upload your images to process.
+An S3 bucket named `srphm-image-processor` is created on deployment. Here you will upload your images to process.
 You **must** upload them to the `original` folder. Either you can create it or will be created for you when running the **test** Lambda (see below).
 
 ### Lambdas
@@ -52,7 +52,7 @@ On subsequent deployments, the zip file will be pulled from local cache unless i
 
     * **Upload an image manually**
 
-      a. Go to AWS S3 and open the `serephem-image-processor` bucket
+      a. Go to AWS S3 and open the `srphm-image-processor` bucket
 
       b. Create the `original` folder if it doesn't exist
 
