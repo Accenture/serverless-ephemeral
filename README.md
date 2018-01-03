@@ -13,9 +13,9 @@ Serverless Ephemeral (or Serephem) is a [Serverless Framework plugin](https://se
 * Docker (with docker compose)
 
 ## Examples
-* [TensorFlow Lambda](examples/tensorflow-lambda): Uses Serephem to pull in a packaged TensorFlow (see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md)) and add the library to Python Lambdas.
+* [TensorFlow Lambda](examples/tensorflow-lambda): Pulls in or builds (via Docker) a TensorFlow package. For reference on how to manually build a TensorFlow package for Lambdas, see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md).
 
-* [Image Processor](examples/image-processor): Uses Serephem to to bundle Python [Pillow](https://python-pillow.org/) in order to to resize an S3 uploaded image.
+* [Image Processor](examples/image-processor): Builds and adds a Python [Pillow](https://python-pillow.org/) package  in order to resize an image uploaded to an S3 bucket.
 
 ## Add the plugin
 1. Install it
