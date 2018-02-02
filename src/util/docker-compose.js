@@ -8,6 +8,27 @@ const validate = () => {
     return true;
 };
 
+const execPromise = (cmd) => {
+    let stderr = '';
+
+    const exe = shell.exec(cmd, { async: true });
+
+    exe.stderr.on('data', (data) => {
+        stderr += data;
+    });
+
+    return new Promise((resolve, reject) => {
+        exe.on('error', err => reject(err));
+
+        exe.on('close', (code) => {
+            if (typeof code === 'number' && code > 0) {
+                return reject(new Error(`Command '${cmd}' exited with code ${code} \n\n${stderr}`));
+            }
+            return resolve();
+        });
+    });
+};
+
 module.exports = {
     /**
      * Validates Docker is installed
@@ -23,13 +44,7 @@ module.exports = {
      */
     build () {
         validate();
-
-        const build = shell.exec('docker-compose build', { async: true });
-
-        return new Promise((resolve, reject) => {
-            build.on('error', err => reject(err));
-            build.on('close', () => resolve());
-        });
+        return execPromise('docker-compose build');
     },
 
     /**
@@ -64,22 +79,11 @@ module.exports = {
                 Object.keys(envs).map(env => `-e '${env}=${envs[env]}'`)
             );
         }
-
-        const run = shell.exec(`${command.join(' ')} ${container}`, { async: true });
-
-        return new Promise((resolve, reject) => {
-            run.on('error', err => reject(err));
-            run.on('close', () => resolve());
-        });
+        return execPromise(`${command.join(' ')} ${container}`);
     },
 
     rm (container) {
         validate();
-
-        const remove = shell.exec(`docker-compose rm -f ${container}`, { async: true });
-        return new Promise((resolve, reject) => {
-            remove.on('error', err => reject(err));
-            remove.on('close', () => resolve());
-        });
+        return execPromise(`docker-compose rm -f ${container}`);
     },
 };

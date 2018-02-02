@@ -5,6 +5,9 @@ const proxyquire = require('proxyquire');
 const getStubs = () => {
     const streamStub = {
         on: sinon.stub(),
+        stderr: {
+            on: sinon.stub(),
+        },
     };
 
     const shellStub = {
@@ -38,12 +41,26 @@ test('Validates that Docker is not installed', (t) => {
 test('Builds a Docker service via compose', (t) => {
     const { util, shellStub, streamStub } = getStubs();
 
-    streamStub.on.withArgs('close').yields();
+    streamStub.on.withArgs('close').yields(0);
 
     return util.build().then(() => {
         const execCall = shellStub.exec.getCall(0);
         t.is(execCall.args[0], 'docker-compose build');
         t.true(execCall.args[1].async);
+    });
+});
+
+test('Catch an error in the docker-compose build with a non-zero exit code', (t) => {
+    const { util, streamStub } = getStubs();
+
+    // non zero exit code means that error occured
+    const code = 1;
+    const stderr = 'The Docker Engine version is less than the minimum required by Compose. Your current project requires a Docker Engine of version 1.13.0 or greater.';
+    streamStub.on.withArgs('close').yields(code);
+    streamStub.stderr.on.withArgs('data').yields(stderr);
+
+    return util.build().catch((err) => {
+        t.is(err.message, `Command 'docker-compose build' exited with code ${code} \n\n${stderr}`);
     });
 });
 
