@@ -8,6 +8,7 @@ const createDirectories = require('./src/action/createDirectories');
 const copyServerlessArtifacts = require('./src/action/copyServerlessArtifacts');
 const fetchLibraries = require('./src/action/fetchLibraries');
 const packDependencies = require('./src/action/packDependencies');
+const addLocalLdLibraryPath = require('./src/action/addLocalLdLibraryPath');
 const { isVerbose, vlog, debug } = require('./src/util/cli');
 
 const EPHEMERAL_DIR_NAME = '.ephemeral';
@@ -36,6 +37,7 @@ class ServerlessEphemeral {
             createDirectories,
             copyServerlessArtifacts,
             fetchLibraries,
+            addLocalLdLibraryPath,
             packDependencies // eslint-disable-line comma-dangle
         );
 
@@ -57,6 +59,10 @@ class ServerlessEphemeral {
 
             'before:package:finalize': () => BbPromise.bind(this)
                 .then(this.packDependencies),
+
+            'before:invoke:local:invoke': () => BbPromise.bind(this)
+                .then(this.addLocalLdLibraryPath),
+
         };
     }
 }
