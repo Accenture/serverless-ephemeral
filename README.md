@@ -75,7 +75,7 @@ custom:
       - packager:
           name: tensorflow
           version: 1.4.0
-          local_ld_library_path: /usr/local/cuda/lib64 # will allow you to run `serverless invoke local`
+        local_ld_library_path: /usr/local/cuda/lib64 # will allow you to run `serverless invoke local`
 ```
 
 - **packager.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
