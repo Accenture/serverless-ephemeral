@@ -187,9 +187,8 @@ test('Updates the Lambda zip hashes in the Cloud Formation template', (t) => {
         t.true(t.context.namingServiceStub.getLambdaVersionLogicalId.calledTwice);
         t.true(t.context.namingServiceStub.getLambdaLogicalIdRegex.calledTwice);
 
-        const Resources =
-            action.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-        const Outputs = action.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+        const { Outputs, Resources } =
+            action.serverless.service.provider.compiledCloudFormationTemplate;
 
         t.truthy(Resources.TestLambdaVersion67890QWERTY);
         t.is(Resources.TestLambdaVersion67890QWERTY.Properties.CodeSha256, '67890QWERTY');

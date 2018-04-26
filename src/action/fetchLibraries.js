@@ -152,7 +152,8 @@ module.exports = {
 
             if (libConfig.packager) {
                 handler = PackagerFactory.build(
-                    this.serverless, this.ephemeral, libConfig.packager);
+                    this.serverless, this.ephemeral, libConfig.packager
+                );
             } else if (libConfig.url) {
                 handler = new Download(this.serverless, this.ephemeral, libConfig.url);
             } else {

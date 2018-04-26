@@ -46,8 +46,8 @@ module.exports = {
     updateLambdasHash () {
         this.serverless.cli.vlog('Recalculating Lambdas version');
 
-        const Resources = this.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-        const Outputs = this.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+        const { Outputs, Resources } =
+            this.serverless.service.provider.compiledCloudFormationTemplate;
 
         const namingService = this.serverless.getProvider('aws').naming;
         const getLambdaVersionLogicalId =
@@ -62,8 +62,7 @@ module.exports = {
                 delete Resources[key];
 
                 const functionName =
-                    Resource.Properties.FunctionName.Ref.replace(
-                            namingService.getLambdaLogicalIdRegex(), '');
+                    Resource.Properties.FunctionName.Ref.replace(namingService.getLambdaLogicalIdRegex(), '');
                 const newVersionLogicalId = getLambdaVersionLogicalId(functionName, newHash);
 
                 // update the AWS::Lambda::Version resource

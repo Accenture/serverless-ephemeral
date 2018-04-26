@@ -37,8 +37,7 @@ test('Throws error when "compose" is missing', (t) => {
         new CustomPackager(getServerless(), getEphemeral(), {
             service: 'my-service',
             output: '/tmp/libraries/library-A.zip',
-        })
-    );
+        }));
     t.is(error.message, 'The option "compose" was not provided');
 });
 
@@ -47,8 +46,7 @@ test('Throws error when "service" is missing', (t) => {
         new CustomPackager(getServerless(), getEphemeral(), {
             compose: 'path/to/docker-compose.yml',
             output: '/tmp/libraries/library-A.zip',
-        })
-    );
+        }));
     t.is(error.message, 'The option "service" was not provided');
 });
 
@@ -57,8 +55,7 @@ test('Throws error when "output" is missing', (t) => {
         new CustomPackager(getServerless(), getEphemeral(), {
             compose: 'path/to/docker-compose.yml',
             service: 'my-service',
-        })
-    );
+        }));
     t.is(error.message, 'The option "output" was not provided');
 });
 
@@ -68,8 +65,7 @@ test('Throws error when "output" is not a path to a zip file', (t) => {
             compose: 'path/to/docker-compose.yml',
             service: 'my-service',
             output: '/tmp/libraries/library-A.7z',
-        })
-    );
+        }));
     t.is(error.message, 'Packager "output" must be a path to a zip file');
 });
 
