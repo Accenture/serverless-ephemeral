@@ -43,27 +43,27 @@
   ],
   "license": "ISC",
   "devDependencies": {
-    "ava": "^0.24.0",
-    "eslint": "^3.14.1",
-    "eslint-config-airbnb": "^14.0.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^3.0.2",
-    "eslint-plugin-react": "^6.9.0",
+    "ava": "^0.25.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.9.1",
     "pre-commit": "^1.2.2",
-    "proxyquire": "^1.7.11",
-    "sinon": "^4.1.2"
+    "proxyquire": "^2.0.1",
+    "sinon": "^6.0.0"
   },
   "dependencies": {
-    "archiver": "^2.1.0",
+    "archiver": "^2.1.1",
     "bluebird": "^3.5.1",
     "del": "^3.0.0",
-    "parse-filepath": "^1.0.1",
-    "request": "^2.83.0",
-    "shelljs": "^0.7.8",
-    "underscore": "^1.8.3",
+    "parse-filepath": "^1.0.2",
+    "request": "^2.87.0",
+    "shelljs": "^0.8.2",
+    "underscore": "^1.9.1",
     "underscore.string": "^3.3.4",
-    "unzip-stream": "^0.2.1",
-    "url-parse": "^1.2.0"
+    "unzip-stream": "^0.3.0",
+    "url-parse": "^1.4.1"
   },
   "peerDependencies": {
     "serverless": ">= 1.12.0"

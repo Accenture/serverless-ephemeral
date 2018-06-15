@@ -5,7 +5,7 @@ module.exports = {
      * @returns {boolean}
      */
     isVerbose () {
-        const options = this.serverless.processedInput.options;
+        const { options } = this.serverless.processedInput;
         return (options.v || options.verbose);
     },
 

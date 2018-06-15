@@ -5,7 +5,7 @@ class Fetch {
         this.serverless = serverless;
         this.ephemeral = ephemeral;
 
-        this.file = null;  // set on child libraries
+        this.file = null; // set on child libraries
         this.useCached = options.useCached === undefined ? true : !!options.useCached;
         this.unzipped = new FilePath(this.ephemeral.paths.pkg);
     }

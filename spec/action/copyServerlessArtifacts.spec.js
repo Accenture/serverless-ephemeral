@@ -43,7 +43,8 @@ test.serial('Checks if the Serverless artifacts zip exists', (t) => {
 
     return action.checkServerlessArtifactExists().then(() => {
         t.true(
-            Util.fs.promises.access.calledWith('/service/.serverless/project.zip', fs.constants.R_OK));
+            Util.fs.promises.access.calledWith('/service/.serverless/project.zip', fs.constants.R_OK)
+        );
     });
 });
 

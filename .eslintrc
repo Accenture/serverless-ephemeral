@@ -5,6 +5,7 @@
             "SwitchCase": 1
         }],
         "space-before-function-paren": ["error", "always"],
+        "function-paren-newline": ["error", "consistent"],
         "comma-dangle": ["error", {
             "arrays": "always-multiline",
             "objects": "always-multiline",

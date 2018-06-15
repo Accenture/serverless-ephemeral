@@ -29,8 +29,7 @@ module.exports = {
                 (accessError) => {
                     this.serverless.cli.log(`Error reading path ${this.ephemeral.paths.base}`);
                     reject(accessError);
-                }
-            );
+                });
         });
     },
 
@@ -75,8 +74,7 @@ module.exports = {
                 (accessError) => {
                     this.serverless.cli.log(`Error reading path ${this.ephemeral.paths.lib}`);
                     reject(accessError);
-                }
-            );
+                });
         });
     },
 
