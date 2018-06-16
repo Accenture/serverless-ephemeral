@@ -38,7 +38,7 @@
     "test:watch": "npm test -- --watch"
   },
   "pre-commit": [
-    "lint",
+    "lint:fix",
     "test"
   ],
   "license": "ISC",

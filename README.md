@@ -13,7 +13,7 @@ Serverless Ephemeral (or Serephem) is a [Serverless Framework plugin](https://se
 * Docker (with docker compose)
 
 ## Examples
-* [TensorFlow Lambda](examples/tensorflow-lambda): Pulls in or builds (via Docker) a TensorFlow package. For reference on how to manually build a TensorFlow package for Lambdas, see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md).
+* [TensorFlow Lambda (CPU only, Python 2.7)](examples/tensorflow-lambda): Pulls in or builds (via Docker) a TensorFlow package. For reference on how to manually build a TensorFlow package for Lambdas, see [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md).
 
 * [Image Processor](examples/image-processor): Builds and adds a Python [Pillow](https://python-pillow.org/) package  in order to resize an image uploaded to an S3 bucket.
 
@@ -74,7 +74,7 @@ custom:
     libraries:
       - packager:
           name: tensorflow
-          version: 1.4.0
+          version: 1.8.0
 ```
 
 - **packager.name** is required. This is the packager name identifier for TensorFlow: **tensorflow**
@@ -158,16 +158,18 @@ You can create your own packager via Docker. To do so:
 
 ### Download a library
 
+You can download a previously zipped library that contains all the necessary files and automatically add it to your Lambda deployment.
+
 ```yaml
 custom:
   ephemeral:
     libraries:
-      - url: https://xxxxx.s3.amazonaws.com/tensorflow-1.3.0-cp27-none-linux_x86_64.zip
+      - url: https://xxxxx.s3.amazonaws.com/my-library.zip
 ```
 
 - **url** is required. This is the packaged library you want to include. The library must be a zip file.
 
-> Documentation explaining how to create the deployable TensorFlow zipped package can be found here: [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md). This approach can be used as a base to create other stateless libraries.
+> Documentation explaining how to create a deployable TensorFlow zipped package can be found here: [docs/build-tensorflow-package.md](docs/build-tensorflow-package.md). This approach can be used as a base to create other stateless libraries.
 
 ### Global options
 
@@ -177,9 +179,9 @@ custom:
     libraries:
       - packager:
           name: tensorflow
-          version: 1.4.0
+          version: 1.8.0
         directory: tfpackage
-      - url: https://xxxxx.s3.amazonaws.com/boto3.zip
+      - url: https://xxxxx.s3.amazonaws.com/my-library.zip
         nocache: true
 ```
 
@@ -204,21 +206,8 @@ During the deployment process, the `.ephemeral` directory will be created. The p
 * Bundling the libraries and the Serverless Lambda function file(s) inside the `.ephemeral/pkg` folder
 
 ---
-## Contribute
+## Development
 This plugin is created with Node and uses the Serverless Framework hooks to execute the necessary actions.
-
-### Installation
-1. Clone this repository
-
-    ```bash
-    git clone https://github.com/Accenture/serverless-ephemeral.git
-    ```
-
-1. Install the node dependencies
-
-    ```bash
-    npm i
-    ```
 
 ### Running Lint
 The plugin code uses the AirBnB ESLint rule set with some enhancements (see `.eslintrc` file). To run the linter:
