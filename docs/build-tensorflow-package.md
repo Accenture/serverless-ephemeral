@@ -128,4 +128,4 @@ If you get a warning when `strip` is run against NumPy saying ` Not enough room 
 * https://medium.com/@maebert/machine-learning-on-aws-lambda-5dc57127aee1
 * https://www.tensorflow.org/get_started/os_setup
 * https://pypi.python.org/pypi/numpy/1.11.2
-
+* https://github.com/jylinman/tensorflow-lambda-package
