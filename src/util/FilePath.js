@@ -18,6 +18,10 @@ class FilePath {
     get path () {
         return this.dir + (this.filename ? `/${this.filename}` : '');
     }
+
+    toString () {
+        return this.path;
+    }
 }
 
 module.exports = FilePath;

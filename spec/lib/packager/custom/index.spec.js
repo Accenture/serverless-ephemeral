@@ -101,6 +101,7 @@ test('Builds a zip via the custom Docker files', async (t) => {
         const runCall = dockerCompose.run.getCall(0);
         t.is(runCall.args[0], 'my-service');
         t.is(runCall.args[1].volume, '/home/foo/project/.ephemeral/lib:/tmp/libraries');
+        t.is(runCall.args[1].environment.output, '/tmp/libraries/library-A.7z');
 
         t.true(dockerCompose.rm.calledWith('my-service'));
         t.true(shellStub.popd.calledOnce);
