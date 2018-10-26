@@ -63,7 +63,7 @@
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.4",
     "unzip-stream": "^0.3.0",
-    "url-parse": "^1.4.1"
+    "url-parse": "^1.4.3"
   },
   "peerDependencies": {
     "serverless": ">= 1.12.0"
