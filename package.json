@@ -1,6 +1,6 @@
 {
   "name": "serverless-ephemeral",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "engines": {
     "node": ">=6.0"
   },
