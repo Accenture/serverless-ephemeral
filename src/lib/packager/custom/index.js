@@ -34,8 +34,12 @@ class CustomPackager extends Packager {
         const volume =
             `${rtrim(this.serverless.config.servicePath, '/')}/${this.ephemeral.paths.lib}:${this.output.dir}`;
 
+        const environment = {
+            output: `${this.output}`,
+        };
+
         return dockerCompose.build()
-            .then(dockerCompose.run.bind(null, this.service, { volume }))
+            .then(dockerCompose.run.bind(null, this.service, { volume, environment }))
             .then(dockerCompose.rm.bind(null, this.service))
             .then(() => {
                 shell.popd();
