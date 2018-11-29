@@ -16,12 +16,9 @@ custom:
     libraries:
       - packager:
           name: tensorflow
-          version: 1.8.0
+          version: 1.9.0
         directory: tfpackage
         # nocache: true
-      # - url: https://s3-us-west-2.amazonaws.com/liquid-studio-tensorflow/tensorflow-1.2.0-cp27-none-linux_x86_64.zip
-      #   directory: tensorflow-1.2.0
-      #   nocache: true
 
 provider:
   name: aws
