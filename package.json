@@ -61,7 +61,7 @@
     "request": "^2.87.0",
     "shelljs": "^0.8.2",
     "underscore": "^1.9.1",
-    "underscore.string": "^3.3.4",
+    "underscore.string": "^3.3.5",
     "unzip-stream": "^0.3.0",
     "url-parse": "^1.4.3"
   },
