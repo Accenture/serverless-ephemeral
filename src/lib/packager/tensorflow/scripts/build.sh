@@ -21,6 +21,7 @@ build () {
     cd ${dir}
     rm -rf easy_install* pip* setup_tools* setuptools* wheel*    # Remove unnecessary libraries to save space
     zip -r9q ${output} * --exclude \*.pyc
+    echo ""
   done
 }
 
